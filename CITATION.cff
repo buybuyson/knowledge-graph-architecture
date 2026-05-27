@@ -1,0 +1,40 @@
+cff-version: 1.2.0
+title: "Hierarchical Knowledge Graph Architecture for LLMs (Concept + Partial PoC)"
+message: "If you use or reference this work, please cite it as below."
+type: software
+authors:
+  - given-names: "Son"
+    family-names: "Pham Nguyen"
+version: "1.1"
+date-released: "2026-05-26"
+url: "(fill in GitHub repo URL after push)"
+repository-code: "(fill in GitHub repo URL)"
+keywords:
+  - knowledge-graph
+  - LLM
+  - retrieval
+  - token-efficiency
+  - graph-architecture
+  - optimization-framework
+abstract: >-
+  A concept for hierarchical knowledge organization (Hub/Leaf) for LLM
+  retrieval, where edges carry routing information and queries traverse by a
+  few-steps principle. Includes a partial PoC extracted from a real codebase
+  confirming the B1-B2 layers; the B3 layer (semantic jump, O(1)) remains an
+  unbenchmarked hypothesis. Grounded in the THRESHOLD-QUANTITY-QUALITY (NLC)
+  framework, "Am I Really Optimizing — Or Am I Hurting the System?", and EVO.
+references:
+  - type: book
+    title: "THRESHOLD-QUANTITY-QUALITY (NLC)"
+    authors:
+      - given-names: "Son"
+        family-names: "Pham Nguyen"
+    url: "https://nguyenson57.gumroad.com/l/qxbgia"
+    notes: "Theoretical foundation — not included in repo. Available on Gumroad."
+  - type: book
+    title: "Am I Really Optimizing — Or Am I Hurting the System?"
+    authors:
+      - given-names: "Son"
+        family-names: "Pham Nguyen"
+    url: "https://nguyenson57.gumroad.com/l/oczdmd"
+    notes: "Optimization/pseudo-optimization foundation — not included in repo. Available on Gumroad."

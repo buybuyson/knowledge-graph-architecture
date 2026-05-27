@@ -1,0 +1,1188 @@
+{
+  "code_dependency": {
+    "schema": {
+      "node_types": [
+        "Module",
+        "Function",
+        "ConfigVar",
+        "Model"
+      ],
+      "edge_types": [
+        "imports",
+        "calls",
+        "reads-env",
+        "resolves"
+      ]
+    },
+    "nodes": [
+      {
+        "id": "mod:audio",
+        "type": "Module",
+        "label": "audio",
+        "file": "audio.py"
+      },
+      {
+        "id": "mod:utils",
+        "type": "Module",
+        "label": "utils"
+      },
+      {
+        "id": "mod:denoise",
+        "type": "Module",
+        "label": "denoise",
+        "file": "denoise.py"
+      },
+      {
+        "id": "env:HW_DENOISE_ENGINE",
+        "type": "ConfigVar",
+        "label": "HW_DENOISE_ENGINE"
+      },
+      {
+        "id": "mod:diarize",
+        "type": "Module",
+        "label": "diarize",
+        "file": "diarize.py"
+      },
+      {
+        "id": "mod:transcribe",
+        "type": "Module",
+        "label": "transcribe"
+      },
+      {
+        "id": "env:HF_TOKEN",
+        "type": "ConfigVar",
+        "label": "HF_TOKEN"
+      },
+      {
+        "id": "mod:export",
+        "type": "Module",
+        "label": "export",
+        "file": "export.py"
+      },
+      {
+        "id": "mod:hardware_detect",
+        "type": "Module",
+        "label": "hardware_detect",
+        "file": "hardware_detect.py"
+      },
+      {
+        "id": "mod:model_locator",
+        "type": "Module",
+        "label": "model_locator",
+        "file": "model_locator.py"
+      },
+      {
+        "id": "model:whisper",
+        "type": "Model",
+        "label": "whisper model"
+      },
+      {
+        "id": "env:USERNAME",
+        "type": "ConfigVar",
+        "label": "USERNAME"
+      },
+      {
+        "id": "mod:postprocess",
+        "type": "Module",
+        "label": "postprocess",
+        "file": "postprocess.py"
+      },
+      {
+        "id": "env:LLM_CONF_THRESHOLD",
+        "type": "ConfigVar",
+        "label": "LLM_CONF_THRESHOLD"
+      },
+      {
+        "id": "env:OLLAMA_MODEL",
+        "type": "ConfigVar",
+        "label": "OLLAMA_MODEL"
+      },
+      {
+        "id": "env:LLM_DOMAIN",
+        "type": "ConfigVar",
+        "label": "LLM_DOMAIN"
+      },
+      {
+        "id": "env:LLM_GLOSSARY",
+        "type": "ConfigVar",
+        "label": "LLM_GLOSSARY"
+      },
+      {
+        "id": "mod:main",
+        "type": "Module",
+        "label": "main",
+        "file": "main.py"
+      },
+      {
+        "id": "env:WHISPER_MODEL",
+        "type": "ConfigVar",
+        "label": "WHISPER_MODEL"
+      },
+      {
+        "id": "env:WHISPER_LANGUAGE",
+        "type": "ConfigVar",
+        "label": "WHISPER_LANGUAGE"
+      },
+      {
+        "id": "env:WHISPER_DEVICE",
+        "type": "ConfigVar",
+        "label": "WHISPER_DEVICE"
+      },
+      {
+        "id": "env:WHISPER_COMPUTE_TYPE",
+        "type": "ConfigVar",
+        "label": "WHISPER_COMPUTE_TYPE"
+      },
+      {
+        "id": "env:OUTPUT_DIR",
+        "type": "ConfigVar",
+        "label": "OUTPUT_DIR"
+      },
+      {
+        "id": "env:DENOISE_LEVEL",
+        "type": "ConfigVar",
+        "label": "DENOISE_LEVEL"
+      },
+      {
+        "id": "env:SILENCE_THRESHOLD_DB",
+        "type": "ConfigVar",
+        "label": "SILENCE_THRESHOLD_DB"
+      },
+      {
+        "id": "env:SILENCE_MIN_SEC",
+        "type": "ConfigVar",
+        "label": "SILENCE_MIN_SEC"
+      },
+      {
+        "id": "env:VAD_THRESHOLD",
+        "type": "ConfigVar",
+        "label": "VAD_THRESHOLD"
+      },
+      {
+        "id": "env:VAD_MIN_SILENCE_MS",
+        "type": "ConfigVar",
+        "label": "VAD_MIN_SILENCE_MS"
+      },
+      {
+        "id": "env:VAD_SPEECH_PAD_MS",
+        "type": "ConfigVar",
+        "label": "VAD_SPEECH_PAD_MS"
+      },
+      {
+        "id": "env:COMPRESSION_RATIO_THRESHOLD",
+        "type": "ConfigVar",
+        "label": "COMPRESSION_RATIO_THRESHOLD"
+      },
+      {
+        "id": "env:LOG_PROB_THRESHOLD",
+        "type": "ConfigVar",
+        "label": "LOG_PROB_THRESHOLD"
+      },
+      {
+        "id": "env:NO_SPEECH_THRESHOLD",
+        "type": "ConfigVar",
+        "label": "NO_SPEECH_THRESHOLD"
+      },
+      {
+        "id": "env:REPETITION_PENALTY",
+        "type": "ConfigVar",
+        "label": "REPETITION_PENALTY"
+      },
+      {
+        "id": "env:DENOISE_ENABLED",
+        "type": "ConfigVar",
+        "label": "DENOISE_ENABLED"
+      },
+      {
+        "id": "env:LLM_ENABLED",
+        "type": "ConfigVar",
+        "label": "LLM_ENABLED"
+      },
+      {
+        "id": "env:CONDITION_ON_PREVIOUS_TEXT",
+        "type": "ConfigVar",
+        "label": "CONDITION_ON_PREVIOUS_TEXT"
+      },
+      {
+        "id": "mod:download_models",
+        "type": "Module",
+        "label": "download_models",
+        "file": "download_models.py"
+      }
+    ],
+    "edges": [
+      {
+        "source": "mod:audio",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "audio.py:15"
+      },
+      {
+        "source": "mod:denoise",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "denoise.py:19"
+      },
+      {
+        "source": "mod:denoise",
+        "target": "env:HW_DENOISE_ENGINE",
+        "type": "reads-env",
+        "evidence": "denoise.py:100"
+      },
+      {
+        "source": "mod:diarize",
+        "target": "mod:transcribe",
+        "type": "imports",
+        "evidence": "diarize.py:18"
+      },
+      {
+        "source": "mod:diarize",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "diarize.py:19"
+      },
+      {
+        "source": "mod:diarize",
+        "target": "env:HF_TOKEN",
+        "type": "reads-env",
+        "evidence": "diarize.py:89"
+      },
+      {
+        "source": "mod:export",
+        "target": "mod:transcribe",
+        "type": "imports",
+        "evidence": "export.py:13"
+      },
+      {
+        "source": "mod:export",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "export.py:14"
+      },
+      {
+        "source": "mod:hardware_detect",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "hardware_detect.py:18"
+      },
+      {
+        "source": "mod:model_locator",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "model_locator.py:18"
+      },
+      {
+        "source": "mod:model_locator",
+        "target": "model:whisper",
+        "type": "resolves",
+        "evidence": "model_locator.py:87"
+      },
+      {
+        "source": "mod:model_locator",
+        "target": "env:USERNAME",
+        "type": "reads-env",
+        "evidence": "model_locator.py:30"
+      },
+      {
+        "source": "mod:postprocess",
+        "target": "mod:transcribe",
+        "type": "imports",
+        "evidence": "postprocess.py:15"
+      },
+      {
+        "source": "mod:postprocess",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "postprocess.py:16"
+      },
+      {
+        "source": "mod:postprocess",
+        "target": "env:LLM_CONF_THRESHOLD",
+        "type": "reads-env",
+        "evidence": "postprocess.py:24"
+      },
+      {
+        "source": "mod:postprocess",
+        "target": "env:OLLAMA_MODEL",
+        "type": "reads-env",
+        "evidence": "postprocess.py:204"
+      },
+      {
+        "source": "mod:postprocess",
+        "target": "env:LLM_DOMAIN",
+        "type": "reads-env",
+        "evidence": "postprocess.py:212"
+      },
+      {
+        "source": "mod:postprocess",
+        "target": "env:LLM_GLOSSARY",
+        "type": "reads-env",
+        "evidence": "postprocess.py:78"
+      },
+      {
+        "source": "mod:transcribe",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "transcribe.py:18"
+      },
+      {
+        "source": "mod:transcribe",
+        "target": "mod:model_locator",
+        "type": "imports",
+        "evidence": "transcribe.py:48"
+      },
+      {
+        "source": "mod:transcribe",
+        "target": "model:whisper",
+        "type": "resolves",
+        "evidence": "transcribe.py:49"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:WHISPER_MODEL",
+        "type": "reads-env",
+        "evidence": "main.py:101"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:WHISPER_LANGUAGE",
+        "type": "reads-env",
+        "evidence": "main.py:102"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:WHISPER_DEVICE",
+        "type": "reads-env",
+        "evidence": "main.py:103"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:WHISPER_COMPUTE_TYPE",
+        "type": "reads-env",
+        "evidence": "main.py:104"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:OUTPUT_DIR",
+        "type": "reads-env",
+        "evidence": "main.py:105"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:OLLAMA_MODEL",
+        "type": "reads-env",
+        "evidence": "main.py:114"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:LLM_DOMAIN",
+        "type": "reads-env",
+        "evidence": "main.py:115"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:audio",
+        "type": "imports",
+        "evidence": "main.py:264"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:transcribe",
+        "type": "imports",
+        "evidence": "main.py:265"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:diarize",
+        "type": "imports",
+        "evidence": "main.py:266"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:export",
+        "type": "imports",
+        "evidence": "main.py:267"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:denoise",
+        "type": "imports",
+        "evidence": "main.py:268"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:postprocess",
+        "type": "imports",
+        "evidence": "main.py:269"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:model_locator",
+        "type": "imports",
+        "evidence": "main.py:57"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:hardware_detect",
+        "type": "imports",
+        "evidence": "main.py:71"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:DENOISE_LEVEL",
+        "type": "reads-env",
+        "evidence": "main.py:112"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:SILENCE_THRESHOLD_DB",
+        "type": "reads-env",
+        "evidence": "main.py:116"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:SILENCE_MIN_SEC",
+        "type": "reads-env",
+        "evidence": "main.py:117"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:VAD_THRESHOLD",
+        "type": "reads-env",
+        "evidence": "main.py:119"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:VAD_MIN_SILENCE_MS",
+        "type": "reads-env",
+        "evidence": "main.py:120"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:VAD_SPEECH_PAD_MS",
+        "type": "reads-env",
+        "evidence": "main.py:121"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:COMPRESSION_RATIO_THRESHOLD",
+        "type": "reads-env",
+        "evidence": "main.py:125"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:LOG_PROB_THRESHOLD",
+        "type": "reads-env",
+        "evidence": "main.py:126"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:NO_SPEECH_THRESHOLD",
+        "type": "reads-env",
+        "evidence": "main.py:127"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:REPETITION_PENALTY",
+        "type": "reads-env",
+        "evidence": "main.py:128"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:HW_DENOISE_ENGINE",
+        "type": "reads-env",
+        "evidence": "main.py:281"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:utils",
+        "type": "imports",
+        "evidence": "main.py:444"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:DENOISE_ENABLED",
+        "type": "reads-env",
+        "evidence": "main.py:111"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:LLM_ENABLED",
+        "type": "reads-env",
+        "evidence": "main.py:113"
+      },
+      {
+        "source": "mod:main",
+        "target": "env:CONDITION_ON_PREVIOUS_TEXT",
+        "type": "reads-env",
+        "evidence": "main.py:124"
+      },
+      {
+        "source": "mod:audio",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "audio.py:17",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:audio",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "audio.py:43",
+        "via": "is_audio_file"
+      },
+      {
+        "source": "mod:denoise",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "denoise.py:21",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:diarize",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "diarize.py:21",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:export",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "export.py:16",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:export",
+        "target": "mod:transcribe",
+        "type": "calls",
+        "evidence": "export.py:32",
+        "via": "Seg"
+      },
+      {
+        "source": "mod:export",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "export.py:116",
+        "via": "stem"
+      },
+      {
+        "source": "mod:export",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "export.py:164",
+        "via": "seconds_to_srt_time"
+      },
+      {
+        "source": "mod:hardware_detect",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "hardware_detect.py:20",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:model_locator",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "model_locator.py:20",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:postprocess",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "postprocess.py:18",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:transcribe",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "transcribe.py:20",
+        "via": "get_logger"
+      },
+      {
+        "source": "mod:transcribe",
+        "target": "mod:model_locator",
+        "type": "calls",
+        "evidence": "transcribe.py:49",
+        "via": "resolve"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:audio",
+        "type": "calls",
+        "evidence": "main.py:271",
+        "via": "inspect"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:model_locator",
+        "type": "calls",
+        "evidence": "main.py:58",
+        "via": "scan_available"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:hardware_detect",
+        "type": "calls",
+        "evidence": "main.py:72",
+        "via": "detect"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:hardware_detect",
+        "type": "calls",
+        "evidence": "main.py:73",
+        "via": "apply_to_env"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:denoise",
+        "type": "calls",
+        "evidence": "main.py:282",
+        "via": "denoise"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:transcribe",
+        "type": "calls",
+        "evidence": "main.py:384",
+        "via": "transcribe"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:postprocess",
+        "type": "calls",
+        "evidence": "main.py:405",
+        "via": "postprocess"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:diarize",
+        "type": "calls",
+        "evidence": "main.py:412",
+        "via": "do_diarize"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:export",
+        "type": "calls",
+        "evidence": "main.py:413",
+        "via": "export_all"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:hardware_detect",
+        "type": "calls",
+        "evidence": "main.py:698",
+        "via": "HardwareProfile"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:export",
+        "type": "calls",
+        "evidence": "main.py:364",
+        "via": "export_final"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:utils",
+        "type": "calls",
+        "evidence": "main.py:452",
+        "via": "is_audio_file"
+      },
+      {
+        "source": "mod:main",
+        "target": "mod:export",
+        "type": "calls",
+        "evidence": "main.py:344",
+        "via": "export_chunk"
+      },
+      {
+        "source": "mod:download_models",
+        "target": "env:WHISPER_MODEL",
+        "type": "reads-env",
+        "evidence": "download_models.py:46"
+      },
+      {
+        "source": "mod:download_models",
+        "target": "env:WHISPER_DEVICE",
+        "type": "reads-env",
+        "evidence": "download_models.py:47"
+      },
+      {
+        "source": "mod:download_models",
+        "target": "env:WHISPER_COMPUTE_TYPE",
+        "type": "reads-env",
+        "evidence": "download_models.py:48"
+      },
+      {
+        "source": "mod:download_models",
+        "target": "env:HF_TOKEN",
+        "type": "reads-env",
+        "evidence": "download_models.py:49"
+      }
+    ]
+  },
+  "data_flow": {
+    "schema": {
+      "node_types": [
+        "DataState"
+      ],
+      "edge_types": [
+        "reads",
+        "replaces",
+        "derives",
+        "edits",
+        "annotates",
+        "emits"
+      ]
+    },
+    "nodes": [
+      {
+        "id": "d:raw",
+        "type": "DataState",
+        "label": "Raw audio (original file)",
+        "kind": "audio",
+        "props": {
+          "mutable": false,
+          "on_disk": true,
+          "note": "source file provided by the user"
+        }
+      },
+      {
+        "id": "d:validated",
+        "type": "DataState",
+        "label": "Validated audio",
+        "kind": "audio_meta",
+        "props": {
+          "mutable": false,
+          "derived_from": "d:raw",
+          "note": "only metadata added (duration/format), audio unchanged"
+        }
+      },
+      {
+        "id": "d:denoised",
+        "type": "DataState",
+        "label": "Denoised audio",
+        "kind": "audio",
+        "props": {
+          "mutable": false,
+          "reversible": false,
+          "lossy": true,
+          "derived_from": "d:validated",
+          "note": "audio data replaced; original kept separately, this step itself is not recoverable"
+        }
+      },
+      {
+        "id": "d:chunkwav",
+        "type": "DataState",
+        "label": "WAV of 1 chunk",
+        "kind": "audio",
+        "props": {
+          "mutable": false,
+          "derived_from": "d:denoised",
+          "note": "cut one segment by time window"
+        }
+      },
+      {
+        "id": "d:segs_raw",
+        "type": "DataState",
+        "label": "Raw segments",
+        "kind": "segments",
+        "props": {
+          "mutable": true,
+          "derived_from": "d:chunkwav",
+          "fields": [
+            "start",
+            "end",
+            "text"
+          ],
+          "note": "timestamp relative to chunk origin, not yet shifted to the original file"
+        }
+      },
+      {
+        "id": "d:segs_shift",
+        "type": "DataState",
+        "label": "Timestamp-shifted segments",
+        "kind": "segments",
+        "props": {
+          "mutable": true,
+          "reversible": true,
+          "derived_from": "d:segs_raw",
+          "note": "only start/end change (+= chunk_start); text unchanged"
+        }
+      },
+      {
+        "id": "d:segs_llm",
+        "type": "DataState",
+        "label": "LLM-corrected segments",
+        "kind": "segments",
+        "props": {
+          "mutable": true,
+          "reversible": false,
+          "lossy": true,
+          "derived_from": "d:segs_shift",
+          "fields_changed": [
+            "text"
+          ],
+          "note": "LLM edits text; risk of hallucination/line deletion — this characteristic belongs to the data state, not the edge"
+        }
+      },
+      {
+        "id": "d:segs_spk",
+        "type": "DataState",
+        "label": "Segments with speaker",
+        "kind": "segments",
+        "props": {
+          "mutable": true,
+          "derived_from": "d:segs_llm",
+          "fields_added": [
+            "speaker"
+          ],
+          "note": "add speaker label, text/timestamp unchanged"
+        }
+      },
+      {
+        "id": "d:part",
+        "type": "DataState",
+        "label": "_partNN.docx/srt file",
+        "kind": "file",
+        "props": {
+          "on_disk": true,
+          "derived_from": "d:segs_spk",
+          "note": "export each chunk to disk"
+        }
+      },
+      {
+        "id": "d:final",
+        "type": "DataState",
+        "label": "Final file (merged)",
+        "kind": "file",
+        "props": {
+          "on_disk": true,
+          "derived_from": "d:part",
+          "note": "merge all chunks into a complete file"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "source": "d:raw",
+        "target": "d:validated",
+        "type": "reads",
+        "seq": 1,
+        "route": "reads",
+        "op": "audio.inspect()",
+        "evidence": "main.py:271"
+      },
+      {
+        "source": "d:validated",
+        "target": "d:denoised",
+        "type": "replaces",
+        "seq": 2,
+        "route": "replaces",
+        "op": "denoise.run()",
+        "evidence": "main.py:282"
+      },
+      {
+        "source": "d:denoised",
+        "target": "d:chunkwav",
+        "type": "derives",
+        "seq": 3,
+        "route": "derives",
+        "op": "_extract_chunk()",
+        "evidence": "main.py:298"
+      },
+      {
+        "source": "d:chunkwav",
+        "target": "d:segs_raw",
+        "type": "derives",
+        "seq": 4,
+        "route": "derives",
+        "op": "transcribe.run()",
+        "evidence": "main.py:304"
+      },
+      {
+        "source": "d:segs_raw",
+        "target": "d:segs_shift",
+        "type": "edits",
+        "seq": 5,
+        "route": "edits",
+        "op": "seg.start += start",
+        "evidence": "main.py:322"
+      },
+      {
+        "source": "d:segs_shift",
+        "target": "d:segs_llm",
+        "type": "edits",
+        "seq": 6,
+        "route": "edits",
+        "op": "postprocess.run()",
+        "evidence": "main.py:327"
+      },
+      {
+        "source": "d:segs_llm",
+        "target": "d:segs_spk",
+        "type": "annotates",
+        "seq": 7,
+        "route": "annotates",
+        "op": "diarize.run()",
+        "evidence": "main.py:336"
+      },
+      {
+        "source": "d:segs_spk",
+        "target": "d:part",
+        "type": "emits",
+        "seq": 8,
+        "route": "emits",
+        "op": "export_chunk()",
+        "evidence": "main.py:344"
+      },
+      {
+        "source": "d:part",
+        "target": "d:final",
+        "type": "emits",
+        "seq": 9,
+        "route": "emits",
+        "op": "export_final()",
+        "evidence": "main.py:364"
+      }
+    ],
+    "edge_index": [
+      {
+        "seq": 1,
+        "dir": "d:raw -> d:validated",
+        "route": "reads",
+        "answer_in": "d:validated",
+        "op": "audio.inspect()",
+        "evidence": "main.py:271"
+      },
+      {
+        "seq": 2,
+        "dir": "d:validated -> d:denoised",
+        "route": "replaces",
+        "answer_in": "d:denoised",
+        "op": "denoise.run()",
+        "evidence": "main.py:282"
+      },
+      {
+        "seq": 3,
+        "dir": "d:denoised -> d:chunkwav",
+        "route": "derives",
+        "answer_in": "d:chunkwav",
+        "op": "_extract_chunk()",
+        "evidence": "main.py:298"
+      },
+      {
+        "seq": 4,
+        "dir": "d:chunkwav -> d:segs_raw",
+        "route": "derives",
+        "answer_in": "d:segs_raw",
+        "op": "transcribe.run()",
+        "evidence": "main.py:304"
+      },
+      {
+        "seq": 5,
+        "dir": "d:segs_raw -> d:segs_shift",
+        "route": "edits",
+        "answer_in": "d:segs_shift",
+        "op": "seg.start += start",
+        "evidence": "main.py:322"
+      },
+      {
+        "seq": 6,
+        "dir": "d:segs_shift -> d:segs_llm",
+        "route": "edits",
+        "answer_in": "d:segs_llm",
+        "op": "postprocess.run()",
+        "evidence": "main.py:327"
+      },
+      {
+        "seq": 7,
+        "dir": "d:segs_llm -> d:segs_spk",
+        "route": "annotates",
+        "answer_in": "d:segs_spk",
+        "op": "diarize.run()",
+        "evidence": "main.py:336"
+      },
+      {
+        "seq": 8,
+        "dir": "d:segs_spk -> d:part",
+        "route": "emits",
+        "answer_in": "d:part",
+        "op": "export_chunk()",
+        "evidence": "main.py:344"
+      },
+      {
+        "seq": 9,
+        "dir": "d:part -> d:final",
+        "route": "emits",
+        "answer_in": "d:final",
+        "op": "export_final()",
+        "evidence": "main.py:364"
+      }
+    ],
+    "design": {
+      "edge_role": "a path to the answer, NOT the answer",
+      "node_role": "where the answer is held (data characteristics in node.props)",
+      "edge_index_role": "summary table for a query to look up quickly by seq, avoiding opening each node",
+      "route_vocab": [
+        "reads",
+        "replaces",
+        "derives",
+        "edits",
+        "annotates",
+        "emits"
+      ],
+      "route_note": "route is only for routing/filtering branches; to know how data changes, enter node.answer_in"
+    }
+  },
+  "domain_concept": {
+    "schema": {
+      "node_types": [
+        "Concept"
+      ],
+      "edge_types": [
+        "semantic (decides/reduces/edits/increases/...)"
+      ]
+    },
+    "nodes": [
+      {
+        "id": "c:stt",
+        "type": "Concept",
+        "label": "Speech-to-text"
+      },
+      {
+        "id": "c:vad",
+        "type": "Concept",
+        "label": "VAD (silence filtering)"
+      },
+      {
+        "id": "c:chunk",
+        "type": "Concept",
+        "label": "Chunking"
+      },
+      {
+        "id": "c:silence",
+        "type": "Concept",
+        "label": "Silence detection"
+      },
+      {
+        "id": "c:halluc",
+        "type": "Concept",
+        "label": "Hallucination"
+      },
+      {
+        "id": "c:llm",
+        "type": "Concept",
+        "label": "LLM post-process"
+      },
+      {
+        "id": "c:diar",
+        "type": "Concept",
+        "label": "Diarization"
+      },
+      {
+        "id": "c:engine",
+        "type": "Concept",
+        "label": "ASR/denoise engine"
+      },
+      {
+        "id": "c:hwmode",
+        "type": "Concept",
+        "label": "Hardware mode"
+      },
+      {
+        "id": "c:denoise",
+        "type": "Concept",
+        "label": "Denoise"
+      },
+      {
+        "id": "c:speaker",
+        "type": "Concept",
+        "label": "Speaker labels"
+      },
+      {
+        "id": "c:quality",
+        "type": "Concept",
+        "label": "Transcript quality"
+      }
+    ],
+    "edges": [
+      {
+        "source": "c:hwmode",
+        "target": "c:engine",
+        "type": "semantic",
+        "relation": "decides"
+      },
+      {
+        "source": "c:engine",
+        "target": "c:stt",
+        "type": "semantic",
+        "relation": "provides"
+      },
+      {
+        "source": "c:vad",
+        "target": "c:silence",
+        "type": "semantic",
+        "relation": "based on"
+      },
+      {
+        "source": "c:chunk",
+        "target": "c:silence",
+        "type": "semantic",
+        "relation": "cuts at"
+      },
+      {
+        "source": "c:chunk",
+        "target": "c:halluc",
+        "type": "semantic",
+        "relation": "reduces"
+      },
+      {
+        "source": "c:vad",
+        "target": "c:halluc",
+        "type": "semantic",
+        "relation": "reduces"
+      },
+      {
+        "source": "c:denoise",
+        "target": "c:quality",
+        "type": "semantic",
+        "relation": "increases"
+      },
+      {
+        "source": "c:stt",
+        "target": "c:halluc",
+        "type": "semantic",
+        "relation": "produces"
+      },
+      {
+        "source": "c:llm",
+        "target": "c:halluc",
+        "type": "semantic",
+        "relation": "fixes"
+      },
+      {
+        "source": "c:llm",
+        "target": "c:quality",
+        "type": "semantic",
+        "relation": "increases"
+      },
+      {
+        "source": "c:diar",
+        "target": "c:speaker",
+        "type": "semantic",
+        "relation": "assigns"
+      },
+      {
+        "source": "c:stt",
+        "target": "c:quality",
+        "type": "semantic",
+        "relation": "affects"
+      }
+    ]
+  }
+}

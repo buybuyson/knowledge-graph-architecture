@@ -1,0 +1,35 @@
+# License
+
+## ⚠️ Note: this is a draft framework, NOT legal advice
+
+This document was AI-assisted in drafting its framework. Before publishing, the author should self-verify or consult someone knowledgeable in law, especially the boundary with the paid book content. The AI is not a lawyer and bears no legal responsibility for the content below.
+
+---
+
+## Licensed portion (FREE for research)
+
+The following components in this repo are licensed under **Creative Commons Attribution-NonCommercial 4.0 (CC BY-NC 4.0)** *(suggested — author to confirm or change)*:
+
+- The concept document (`docs/`)
+- The PoC code and viewer (`poc/`)
+- The graph data (`data/`)
+
+Meaning: you may view, run, modify, experiment with, and share — as long as you give attribution and **do not use it for commercial purposes** without a separate agreement.
+
+## Unlicensed portion (paid products)
+
+The contents of the three books are **NOT** under this license and are **NOT** included in the repo:
+
+- THRESHOLD–QUANTITY–QUALITY (NLC)
+- Am I Really Optimizing — Or Am I Hurting the System? (Tối ưu hay Tối kiến)
+- EVO — The Optimization of Optimization
+
+This repo only *points to* and *cites the names of* those theoretical frameworks. All content, locked definitions, and full arguments of the three books are the author's private property, protected by copyright, and accessible only through purchasing the books.
+
+## Author
+
+Pham Nguyen Son
+
+## Year
+
+2026

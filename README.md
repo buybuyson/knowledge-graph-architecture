@@ -1,0 +1,111 @@
+# Hierarchical Knowledge Graph Architecture for LLMs — V1.1
+
+> A concept for organizing knowledge so LLMs can retrieve it more efficiently — with a partial PoC extracted from a real codebase **and a multi-AI blind benchmark measuring token cost.**
+> **Status: Concept + Partial PoC (B1→B2) + preliminary evidence of token savings. B3/O(1) not yet benchmarked. This is a serious hypothesis — testing and rebuttal are welcome.**
+
+**Author:** Pham Nguyen Son
+
+---
+
+## The Problem
+
+As a system grows — more documents, more modules, more context — getting an LLM to retrieve the right information becomes expensive and inaccurate. The common approaches today (stuffing context, flat RAG) waste tokens and frequently miss.
+
+This repo presents a different way to organize knowledge: a **hierarchical knowledge graph**, where knowledge is arranged into a Hub/Leaf structure, every edge carries verifiable information, and queries follow a "fewest steps to an answer" principle instead of scanning everything.
+
+### Why context stuffing fails — the mechanism
+
+A common misunderstanding: that "1M tokens" is capacity the model *sets aside to read* your documents, so you may as well stuff everything in. In reality that number is a **shared budget for both input and output in a single call** — tokens fed in and tokens generated out are drawn from the same pool.
+
+In a multi-turn conversation, because the model **does not remember between calls**, each turn must resend the entire prior history — including the answer the model just produced. History therefore **accumulates turn over turn**, eating into the shared budget. The consequence is not merely "forgetting the middle" (an attention problem); it is a concrete operational chain: by turn N, the budget left for output is squeezed — the effective room left for reasoning and output shrinks, often resulting in shorter, degraded, or compressed answers — or the system **compresses/cuts history** to fit, and the model answers on a *degraded* context, producing **inaccuracy**.
+
+Long context does not only increase memory cost. It also competes with the model's effective reasoning bandwidth. As more tokens occupy the context window, attention becomes increasingly diluted across retrieved documents, prior conversation history, tool traces, intermediate reasoning, and output generation. The result is that larger context windows do not necessarily improve reasoning quality — in many cases, retrieval locality and signal density matter more than raw context size.
+
+This is the real reason answer quality degrades across long conversations — a layer of problem distinct from "lost in the middle," and one that flat context-stuffing has no escape from. This architecture attacks exactly this: instead of resending raw text each turn, history is **graphed into a compact signature**, aiming to keep token growth sublinear across long interactions rather than linearly accumulating. (Full mechanism in `docs/`, section 1.1.1.)
+
+## What's New in V1.0
+
+This version builds on concept v1.32 with three additions, keeping the original's honesty discipline (see `CHANGELOG.md`):
+
+1. **Fixed 2 data errors** found when re-checking the graph against real code: removed a mis-extracted edge (`diarize→audio`, actually a misread of `pyannote.audio`), and added the `download_models` node that had been omitted.
+2. **Upgraded the edge role** in the data_flow graph: an edge is a *path to an answer*, not *the answer*. Data characteristics live in the node; the edge carries only sequence + direction + routing label. Includes an `edge_index` for fast query filtering before opening nodes.
+3. **Multi-AI blind benchmark** (`benchmark/`): the first token-cost measurements from multiple independent LLMs, not just argument.
+
+## Core Principle About Edges (clarified in V1.0)
+
+Edges do **not** carry the answer. The answer lives in the node. An edge holds just enough raw information to let a query *route* — which direction to go, whether this branch is worth taking. If many edges carry near-identical information, that is a sign of **poor node decomposition**, not a flaw to patch by stuffing more metadata into the edge.
+
+## Try It in 2 Minutes
+
+Open the PoC files in a browser (no install needed):
+
+- [`poc/pipeline_v11_graph_viewer.html`](poc/pipeline_v11_graph_viewer.html) — view three graphs (code dependency, data flow, concepts) extracted from a real STT codebase (Pipeline V11). The "Data flow" tab now uses the V1.0 edge architecture: each edge shows `seq · route`, click a node to see its data characteristics, and the sidebar has the `edge_index` table.
+- [`poc/poc_graph_query.html`](poc/poc_graph_query.html) — simulates the alarm-by-family mechanism → activating conditional edges → cross-check jump.
+
+## Empirical Evidence (V1.0)
+
+Read [`benchmark/RESULTS.md`](benchmark/RESULTS.md) for details. Honest summary:
+
+**Supported signal:**
+- Graph-walk loads **fewer input tokens than flat RAG** for structural-lookup questions. Repeated across 3 rounds, with multiple independent AIs (GPT, Grok, Gemini, DeepSeek, Qwen, MathGPT) pointing the same way.
+- **New in Round 3:** graph signature compression keeps token_in growth **sublinear across a 4-turn conversation chain**. The B/A ratio decreases consistently turn-over-turn for all 5 AIs tested (Turn 1 → Turn 4 ranging ~0.30→0.22 down to ~0.77→0.20 depending on AI). Across the 3 serious measurements (GPT5.5, Gemini, Grok — those with large enough token_in to have loaded the codebase), flat history grows +64–104% while graph signature grows only +27–62%. Preliminary evidence only — 1 codebase, 1 topic domain.
+
+**Result against expectation (recorded anyway):**
+- The hypothesis "graph resists fabrication better than RAG" **was not supported by the data**. When a model tends to fabricate, it fabricates under both methods. Honesty depends on the model's nature, not the data structure.
+
+**Still hypothesis:**
+- The magnitude of token savings is not pinned down — range too wide to state a single number.
+- token_out (output) is inconclusive across all rounds.
+- Behavior at >100 nodes, and **B3 / semantic jump / bounded traversal depth**, are not yet benchmarked.
+
+## Read the Full Concept
+
+[`docs/Knowledge_Graph_Architecture_v1_32.md`](docs/Knowledge_Graph_Architecture_v1_32.md) — the full concept document (tree B1 → web B2 → space B3, information-carrying edges, multi-family nodes, cross-check jumps, graph lifecycle, with a section honestly recording what is proven vs. still hypothesis).
+
+## Theoretical Foundation — The NLC (Threshold–Quantity–Quality) Framework
+
+This concept does not stand on intuition. It is grounded in the **THRESHOLD–QUANTITY–QUALITY (NLC)** framework, which is used to verify whether a B0 decomposition is "correct." Summary below is self-contained enough to evaluate the architecture; the full foundation is in the book (linked below).
+
+- **THRESHOLD (Ngưỡng):** A boundary where, once crossed, structural constraints lose effect and the system shifts to different logic. Critically, a threshold is *not* a tunable variable — you cannot "raise it" by adding protective layers. In this architecture, the Δ3 schema-breaking point is a threshold in exactly this sense, not a parameter.
+- **QUANTITY (Lượng):** Accumulated factors the system has not yet resolved. Quantity does not break constraints by itself, but each unit raises the probability of hitting one. This is why the architecture treats unresolved coupling as measurable load (e.g. in-degree), not as harmless detail.
+- **QUALITY (Chất):** The operational role a node actually holds — not a moral attribute, and not freely chosen. A decomposition has correct *quality* when each node genuinely holds its declared role rather than having silently drifted into another.
+
+A key consequence the architecture inherits directly (NLC, Chapter 11, *"Just Add Constraints"*): **constraints are not accessories.** You cannot fix a bad decomposition by piling metadata onto edges — *"Each added constraint creates new threshold."* This is precisely why edges here carry only routing information, and why redundant edge metadata signals a decomposition fault rather than something to patch.
+
+> From the NLC book's final declaration: *"No return to repair → not optimization... Optimization is not belief. Optimization is logical discipline."*
+
+This is also why the architecture differs from GraphRAG at the level of **ideology, not features** (see `docs/` section 8.1): GraphRAG is retrieval-first (build a graph bottom-up to *find* better); this architecture is optimization-first (lock a schema top-down, verified by NLC, where the graph is the *form of an already-optimized decomposition*).
+
+### Books (foundation, not included in repo)
+
+If you want the full foundation — or simply want to pressure-test whether the reasoning holds — the books are available:
+
+- **THRESHOLD–QUANTITY–QUALITY** — the NLC framework: https://nguyenson57.gumroad.com/l/qxbgia
+- **Am I Really Optimizing — Or Am I Hurting the System?** — optimization vs. pseudo-optimization, the 6-question validation set, authority vs. responsibility: https://nguyenson57.gumroad.com/l/oczdmd
+
+The companion book *EVO* is referenced in the concept but is not yet published.
+
+> Note: the repo is **self-contained enough to evaluate without buying anything.** The books are for going deeper, not for unlocking the argument.
+
+## Honest Status — Read Before Judging
+
+The repo follows a discipline: **claim nothing beyond what has been demonstrated.**
+
+**Has evidence:**
+- A real codebase was extracted into a Hub/Leaf tree (B1), with edges carrying verifiable `file:line` metadata (B2).
+- Multi-family nodes, conditional edges, cross-check across two families — these are real phenomena.
+- **Rounds 1–2:** graph-walk saves token_in vs. flat RAG — with numbers from a multi-AI blind test (preliminary evidence, not rigorous proof).
+- **Round 3:** graph signature compression keeps token_in growth sublinear across a 4-turn conversation chain — B/A ratio decreases consistently turn-over-turn across all 5 AIs tested. First direct measurement of the multi-turn accumulation claim. Still preliminary: 1 codebase, 1 topic domain.
+
+**Still hypothesis:**
+- B3 / semantic jump / O(1) — the current PoC is still topology traversal, not teleportation.
+- Behavior at >100 nodes.
+- Advantage in token_out and in accuracy/anti-fabrication.
+
+## Rebuttal
+
+This is a project open to rebuttal. Finding where it breaks is a contribution. Especially welcome: re-running the blind benchmark (`benchmark/`) on your own codebase with other AIs, and reporting back if results differ.
+
+## License & Citation
+
+See [`LICENSE`](LICENSE) and [`CITATION.cff`](CITATION.cff).

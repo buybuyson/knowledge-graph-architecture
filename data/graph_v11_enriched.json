@@ -1,0 +1,1095 @@
+{
+  "meta": {
+    "source": "pipeline V11 (code_dependency graph)",
+    "extracted_by": "AST static analysis — moi edge co evidence file:line",
+    "hubs": [
+      "mod:utils",
+      "mod:transcribe",
+      "mod:export",
+      "mod:hardware_detect",
+      "mod:model_locator"
+    ],
+    "hub_scores": {
+      "mod:utils": 21,
+      "mod:transcribe": 6,
+      "mod:export": 4,
+      "mod:hardware_detect": 4,
+      "mod:model_locator": 4
+    },
+    "schema": {
+      "node_fields": [
+        "id",
+        "type",
+        "label",
+        "families",
+        "is_hub",
+        "in_degree",
+        "multi_family"
+      ],
+      "edge_fields": [
+        "source",
+        "target",
+        "type",
+        "evidence",
+        "carries",
+        "minus_class"
+      ],
+      "minus_classes": {
+        "operational": "(-) sua duoc, tao luong, khong pha rang buoc",
+        "legitimacy": "(-) pha rang buoc nhi phan (vd vong phu thuoc) — khong sua bang cach them",
+        "legitimacy?": "diem nghi van: resolve truc tiep thay vi qua registry tap trung"
+      }
+    },
+    "v1_0_fixes": [
+      "Removed false edge diarize->audio (was misread of 'from pyannote.audio import' at diarize.py:92)",
+      "Added node download_models + 4 reads-env edges (was missing entirely; reads WHISPER_MODEL/DEVICE/COMPUTE_TYPE/HF_TOKEN)",
+      "Recomputed in_degree for affected nodes"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "mod:audio",
+      "type": "Module",
+      "label": "audio",
+      "file": "audio.py",
+      "families": [
+        "mod:utils"
+      ],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "mod:utils",
+      "type": "Module",
+      "label": "utils",
+      "families": [],
+      "is_hub": true,
+      "in_degree": 21,
+      "multi_family": false
+    },
+    {
+      "id": "mod:denoise",
+      "type": "Module",
+      "label": "denoise",
+      "file": "denoise.py",
+      "families": [
+        "mod:utils"
+      ],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "env:HW_DENOISE_ENGINE",
+      "type": "ConfigVar",
+      "label": "HW_DENOISE_ENGINE",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "mod:diarize",
+      "type": "Module",
+      "label": "diarize",
+      "file": "diarize.py",
+      "families": [
+        "mod:transcribe",
+        "mod:utils"
+      ],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": true
+    },
+    {
+      "id": "mod:transcribe",
+      "type": "Module",
+      "label": "transcribe",
+      "families": [
+        "mod:model_locator",
+        "mod:utils"
+      ],
+      "is_hub": true,
+      "in_degree": 6,
+      "multi_family": true
+    },
+    {
+      "id": "env:HF_TOKEN",
+      "type": "ConfigVar",
+      "label": "HF_TOKEN",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "mod:export",
+      "type": "Module",
+      "label": "export",
+      "file": "export.py",
+      "families": [
+        "mod:transcribe",
+        "mod:utils"
+      ],
+      "is_hub": true,
+      "in_degree": 4,
+      "multi_family": true
+    },
+    {
+      "id": "mod:hardware_detect",
+      "type": "Module",
+      "label": "hardware_detect",
+      "file": "hardware_detect.py",
+      "families": [
+        "mod:utils"
+      ],
+      "is_hub": true,
+      "in_degree": 4,
+      "multi_family": false
+    },
+    {
+      "id": "mod:model_locator",
+      "type": "Module",
+      "label": "model_locator",
+      "file": "model_locator.py",
+      "families": [
+        "mod:utils"
+      ],
+      "is_hub": true,
+      "in_degree": 4,
+      "multi_family": false
+    },
+    {
+      "id": "model:whisper",
+      "type": "Model",
+      "label": "whisper model",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "env:USERNAME",
+      "type": "ConfigVar",
+      "label": "USERNAME",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "mod:postprocess",
+      "type": "Module",
+      "label": "postprocess",
+      "file": "postprocess.py",
+      "families": [
+        "mod:transcribe",
+        "mod:utils"
+      ],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": true
+    },
+    {
+      "id": "env:LLM_CONF_THRESHOLD",
+      "type": "ConfigVar",
+      "label": "LLM_CONF_THRESHOLD",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:OLLAMA_MODEL",
+      "type": "ConfigVar",
+      "label": "OLLAMA_MODEL",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "env:LLM_DOMAIN",
+      "type": "ConfigVar",
+      "label": "LLM_DOMAIN",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "env:LLM_GLOSSARY",
+      "type": "ConfigVar",
+      "label": "LLM_GLOSSARY",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "mod:main",
+      "type": "Module",
+      "label": "main",
+      "file": "main.py",
+      "families": [
+        "mod:export",
+        "mod:hardware_detect",
+        "mod:model_locator",
+        "mod:transcribe",
+        "mod:utils"
+      ],
+      "is_hub": false,
+      "in_degree": 0,
+      "multi_family": true
+    },
+    {
+      "id": "env:WHISPER_MODEL",
+      "type": "ConfigVar",
+      "label": "WHISPER_MODEL",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "env:WHISPER_LANGUAGE",
+      "type": "ConfigVar",
+      "label": "WHISPER_LANGUAGE",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:WHISPER_DEVICE",
+      "type": "ConfigVar",
+      "label": "WHISPER_DEVICE",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "env:WHISPER_COMPUTE_TYPE",
+      "type": "ConfigVar",
+      "label": "WHISPER_COMPUTE_TYPE",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 2,
+      "multi_family": false
+    },
+    {
+      "id": "env:OUTPUT_DIR",
+      "type": "ConfigVar",
+      "label": "OUTPUT_DIR",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:DENOISE_LEVEL",
+      "type": "ConfigVar",
+      "label": "DENOISE_LEVEL",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:SILENCE_THRESHOLD_DB",
+      "type": "ConfigVar",
+      "label": "SILENCE_THRESHOLD_DB",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:SILENCE_MIN_SEC",
+      "type": "ConfigVar",
+      "label": "SILENCE_MIN_SEC",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:VAD_THRESHOLD",
+      "type": "ConfigVar",
+      "label": "VAD_THRESHOLD",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:VAD_MIN_SILENCE_MS",
+      "type": "ConfigVar",
+      "label": "VAD_MIN_SILENCE_MS",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:VAD_SPEECH_PAD_MS",
+      "type": "ConfigVar",
+      "label": "VAD_SPEECH_PAD_MS",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:COMPRESSION_RATIO_THRESHOLD",
+      "type": "ConfigVar",
+      "label": "COMPRESSION_RATIO_THRESHOLD",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:LOG_PROB_THRESHOLD",
+      "type": "ConfigVar",
+      "label": "LOG_PROB_THRESHOLD",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:NO_SPEECH_THRESHOLD",
+      "type": "ConfigVar",
+      "label": "NO_SPEECH_THRESHOLD",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:REPETITION_PENALTY",
+      "type": "ConfigVar",
+      "label": "REPETITION_PENALTY",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:DENOISE_ENABLED",
+      "type": "ConfigVar",
+      "label": "DENOISE_ENABLED",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:LLM_ENABLED",
+      "type": "ConfigVar",
+      "label": "LLM_ENABLED",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "env:CONDITION_ON_PREVIOUS_TEXT",
+      "type": "ConfigVar",
+      "label": "CONDITION_ON_PREVIOUS_TEXT",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 1,
+      "multi_family": false
+    },
+    {
+      "id": "mod:download_models",
+      "type": "Module",
+      "label": "download_models",
+      "file": "download_models.py",
+      "families": [],
+      "is_hub": false,
+      "in_degree": 0,
+      "multi_family": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "mod:audio",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "audio.py:15",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:denoise",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "denoise.py:19",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:denoise",
+      "target": "env:HW_DENOISE_ENGINE",
+      "type": "reads-env",
+      "evidence": "denoise.py:100",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:diarize",
+      "target": "mod:transcribe",
+      "type": "imports",
+      "evidence": "diarize.py:18",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:diarize",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "diarize.py:19",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:diarize",
+      "target": "env:HF_TOKEN",
+      "type": "reads-env",
+      "evidence": "diarize.py:89",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:export",
+      "target": "mod:transcribe",
+      "type": "imports",
+      "evidence": "export.py:13",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:export",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "export.py:14",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:hardware_detect",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "hardware_detect.py:18",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:model_locator",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "model_locator.py:18",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:model_locator",
+      "target": "model:whisper",
+      "type": "resolves",
+      "evidence": "model_locator.py:87",
+      "carries": "resolves",
+      "minus_class": "legitimacy?"
+    },
+    {
+      "source": "mod:model_locator",
+      "target": "env:USERNAME",
+      "type": "reads-env",
+      "evidence": "model_locator.py:30",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:postprocess",
+      "target": "mod:transcribe",
+      "type": "imports",
+      "evidence": "postprocess.py:15",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:postprocess",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "postprocess.py:16",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:postprocess",
+      "target": "env:LLM_CONF_THRESHOLD",
+      "type": "reads-env",
+      "evidence": "postprocess.py:24",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:postprocess",
+      "target": "env:OLLAMA_MODEL",
+      "type": "reads-env",
+      "evidence": "postprocess.py:204",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:postprocess",
+      "target": "env:LLM_DOMAIN",
+      "type": "reads-env",
+      "evidence": "postprocess.py:212",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:postprocess",
+      "target": "env:LLM_GLOSSARY",
+      "type": "reads-env",
+      "evidence": "postprocess.py:78",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:transcribe",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "transcribe.py:18",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:transcribe",
+      "target": "mod:model_locator",
+      "type": "imports",
+      "evidence": "transcribe.py:48",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:transcribe",
+      "target": "model:whisper",
+      "type": "resolves",
+      "evidence": "transcribe.py:49",
+      "carries": "resolves",
+      "minus_class": "legitimacy?"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:WHISPER_MODEL",
+      "type": "reads-env",
+      "evidence": "main.py:101",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:WHISPER_LANGUAGE",
+      "type": "reads-env",
+      "evidence": "main.py:102",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:WHISPER_DEVICE",
+      "type": "reads-env",
+      "evidence": "main.py:103",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:WHISPER_COMPUTE_TYPE",
+      "type": "reads-env",
+      "evidence": "main.py:104",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:OUTPUT_DIR",
+      "type": "reads-env",
+      "evidence": "main.py:105",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:OLLAMA_MODEL",
+      "type": "reads-env",
+      "evidence": "main.py:114",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:LLM_DOMAIN",
+      "type": "reads-env",
+      "evidence": "main.py:115",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:audio",
+      "type": "imports",
+      "evidence": "main.py:264",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:transcribe",
+      "type": "imports",
+      "evidence": "main.py:265",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:diarize",
+      "type": "imports",
+      "evidence": "main.py:266",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:export",
+      "type": "imports",
+      "evidence": "main.py:267",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:denoise",
+      "type": "imports",
+      "evidence": "main.py:268",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:postprocess",
+      "type": "imports",
+      "evidence": "main.py:269",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:model_locator",
+      "type": "imports",
+      "evidence": "main.py:57",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:hardware_detect",
+      "type": "imports",
+      "evidence": "main.py:71",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:DENOISE_LEVEL",
+      "type": "reads-env",
+      "evidence": "main.py:112",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:SILENCE_THRESHOLD_DB",
+      "type": "reads-env",
+      "evidence": "main.py:116",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:SILENCE_MIN_SEC",
+      "type": "reads-env",
+      "evidence": "main.py:117",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:VAD_THRESHOLD",
+      "type": "reads-env",
+      "evidence": "main.py:119",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:VAD_MIN_SILENCE_MS",
+      "type": "reads-env",
+      "evidence": "main.py:120",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:VAD_SPEECH_PAD_MS",
+      "type": "reads-env",
+      "evidence": "main.py:121",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:COMPRESSION_RATIO_THRESHOLD",
+      "type": "reads-env",
+      "evidence": "main.py:125",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:LOG_PROB_THRESHOLD",
+      "type": "reads-env",
+      "evidence": "main.py:126",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:NO_SPEECH_THRESHOLD",
+      "type": "reads-env",
+      "evidence": "main.py:127",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:REPETITION_PENALTY",
+      "type": "reads-env",
+      "evidence": "main.py:128",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:HW_DENOISE_ENGINE",
+      "type": "reads-env",
+      "evidence": "main.py:281",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:utils",
+      "type": "imports",
+      "evidence": "main.py:444",
+      "carries": "imports",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:DENOISE_ENABLED",
+      "type": "reads-env",
+      "evidence": "main.py:111",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:LLM_ENABLED",
+      "type": "reads-env",
+      "evidence": "main.py:113",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "env:CONDITION_ON_PREVIOUS_TEXT",
+      "type": "reads-env",
+      "evidence": "main.py:124",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:audio",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "audio.py:17",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:audio",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "audio.py:43",
+      "via": "is_audio_file",
+      "carries": "is_audio_file",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:denoise",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "denoise.py:21",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:diarize",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "diarize.py:21",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:export",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "export.py:16",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:export",
+      "target": "mod:transcribe",
+      "type": "calls",
+      "evidence": "export.py:32",
+      "via": "Seg",
+      "carries": "Seg",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:export",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "export.py:116",
+      "via": "stem",
+      "carries": "stem",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:export",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "export.py:164",
+      "via": "seconds_to_srt_time",
+      "carries": "seconds_to_srt_time",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:hardware_detect",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "hardware_detect.py:20",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:model_locator",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "model_locator.py:20",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:postprocess",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "postprocess.py:18",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:transcribe",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "transcribe.py:20",
+      "via": "get_logger",
+      "carries": "get_logger",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:transcribe",
+      "target": "mod:model_locator",
+      "type": "calls",
+      "evidence": "transcribe.py:49",
+      "via": "resolve",
+      "carries": "resolve",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:audio",
+      "type": "calls",
+      "evidence": "main.py:271",
+      "via": "inspect",
+      "carries": "inspect",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:model_locator",
+      "type": "calls",
+      "evidence": "main.py:58",
+      "via": "scan_available",
+      "carries": "scan_available",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:hardware_detect",
+      "type": "calls",
+      "evidence": "main.py:72",
+      "via": "detect",
+      "carries": "detect",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:hardware_detect",
+      "type": "calls",
+      "evidence": "main.py:73",
+      "via": "apply_to_env",
+      "carries": "apply_to_env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:denoise",
+      "type": "calls",
+      "evidence": "main.py:282",
+      "via": "denoise",
+      "carries": "denoise",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:transcribe",
+      "type": "calls",
+      "evidence": "main.py:384",
+      "via": "transcribe",
+      "carries": "transcribe",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:postprocess",
+      "type": "calls",
+      "evidence": "main.py:405",
+      "via": "postprocess",
+      "carries": "postprocess",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:diarize",
+      "type": "calls",
+      "evidence": "main.py:412",
+      "via": "do_diarize",
+      "carries": "do_diarize",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:export",
+      "type": "calls",
+      "evidence": "main.py:413",
+      "via": "export_all",
+      "carries": "export_all",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:hardware_detect",
+      "type": "calls",
+      "evidence": "main.py:698",
+      "via": "HardwareProfile",
+      "carries": "HardwareProfile",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:export",
+      "type": "calls",
+      "evidence": "main.py:364",
+      "via": "export_final",
+      "carries": "export_final",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:utils",
+      "type": "calls",
+      "evidence": "main.py:452",
+      "via": "is_audio_file",
+      "carries": "is_audio_file",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:main",
+      "target": "mod:export",
+      "type": "calls",
+      "evidence": "main.py:344",
+      "via": "export_chunk",
+      "carries": "export_chunk",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:download_models",
+      "target": "env:WHISPER_MODEL",
+      "type": "reads-env",
+      "evidence": "download_models.py:46",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:download_models",
+      "target": "env:WHISPER_DEVICE",
+      "type": "reads-env",
+      "evidence": "download_models.py:47",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:download_models",
+      "target": "env:WHISPER_COMPUTE_TYPE",
+      "type": "reads-env",
+      "evidence": "download_models.py:48",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    },
+    {
+      "source": "mod:download_models",
+      "target": "env:HF_TOKEN",
+      "type": "reads-env",
+      "evidence": "download_models.py:49",
+      "carries": "reads-env",
+      "minus_class": "operational"
+    }
+  ]
+}

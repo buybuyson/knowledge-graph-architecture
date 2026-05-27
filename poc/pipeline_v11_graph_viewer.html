@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline V11 — Knowledge Graphs</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  :root{
+    --bg:#0f1117; --panel:#171a23; --line:#2a2f3d; --txt:#e6e8ee; --mut:#8b91a3;
+    --blue:#378ADD; --purple:#7F77DD; --teal:#1D9E75; --amber:#EF9F27;
+    --coral:#D85A30; --gray:#888780; --pink:#D4537E; --green:#639922;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:"DejaVu Sans","Segoe UI",sans-serif;overflow:hidden}
+  header{padding:14px 20px;border-bottom:1px solid var(--line);
+         display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  h1{font-size:16px;font-weight:600;margin:0;letter-spacing:.3px}
+  .tabs{display:flex;gap:6px}
+  .tab{padding:7px 14px;border:1px solid var(--line);background:var(--panel);
+       color:var(--mut);border-radius:8px;cursor:pointer;font-size:13px;transition:.15s}
+  .tab:hover{color:var(--txt);border-color:#3a4156}
+  .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .spacer{flex:1}
+  .btn{padding:7px 14px;border:1px solid var(--line);background:var(--panel);
+       color:var(--txt);border-radius:8px;cursor:pointer;font-size:13px}
+  .btn:hover{border-color:var(--blue)}
+  .wrap{display:flex;height:calc(100vh - 56px)}
+  svg{flex:1;cursor:grab}
+  svg:active{cursor:grabbing}
+  aside{width:320px;border-left:1px solid var(--line);padding:16px;overflow-y:auto;
+        background:var(--panel)}
+  aside h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);
+           margin:0 0 8px}
+  .meta{font-size:13px;line-height:1.7}
+  .meta b{color:var(--txt)} .meta span{color:var(--mut)}
+  .chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;
+        margin:2px 4px 2px 0;background:#222633;color:var(--mut)}
+  .legend{margin-top:14px;font-size:12px;line-height:1.9}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;
+       vertical-align:middle}
+  .ev{font-family:"DejaVu Sans Mono",monospace;font-size:11px;color:var(--amber)}
+  .hint{font-size:12px;color:var(--mut);margin-top:6px;line-height:1.6}
+  .rank{font-size:12px;line-height:1.9}
+  .rank b{color:var(--amber)}
+  text{font-family:"DejaVu Sans",sans-serif}
+  .edge-lbl{font-size:9px;fill:var(--mut)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Pipeline V11 · Knowledge Graphs</h1>
+  <div class="tabs" id="tabs"></div>
+  <div class="spacer"></div>
+  <div class="btn" onclick="dl()">⬇ Download JSON</div>
+</header>
+<div class="wrap">
+  <svg id="svg"></svg>
+  <aside>
+    <h2>Info</h2>
+    <div class="meta" id="info">Click a node or edge to see details. Each edge has "evidence" pointing to a real code line.</div>
+    <div class="legend" id="legend"></div>
+    <div id="ranks"></div>
+  </aside>
+</div>
+<script>
+window.GRAPHS = {"code_dependency": {"schema": {"node_types": ["Module", "Function", "ConfigVar", "Model"], "edge_types": ["imports", "calls", "reads-env", "resolves"]}, "nodes": [{"id": "mod:audio", "type": "Module", "label": "audio", "file": "audio.py"}, {"id": "mod:utils", "type": "Module", "label": "utils"}, {"id": "mod:denoise", "type": "Module", "label": "denoise", "file": "denoise.py"}, {"id": "env:HW_DENOISE_ENGINE", "type": "ConfigVar", "label": "HW_DENOISE_ENGINE"}, {"id": "mod:diarize", "type": "Module", "label": "diarize", "file": "diarize.py"}, {"id": "mod:transcribe", "type": "Module", "label": "transcribe"}, {"id": "env:HF_TOKEN", "type": "ConfigVar", "label": "HF_TOKEN"}, {"id": "mod:export", "type": "Module", "label": "export", "file": "export.py"}, {"id": "mod:hardware_detect", "type": "Module", "label": "hardware_detect", "file": "hardware_detect.py"}, {"id": "mod:model_locator", "type": "Module", "label": "model_locator", "file": "model_locator.py"}, {"id": "model:whisper", "type": "Model", "label": "whisper model"}, {"id": "env:USERNAME", "type": "ConfigVar", "label": "USERNAME"}, {"id": "mod:postprocess", "type": "Module", "label": "postprocess", "file": "postprocess.py"}, {"id": "env:LLM_CONF_THRESHOLD", "type": "ConfigVar", "label": "LLM_CONF_THRESHOLD"}, {"id": "env:OLLAMA_MODEL", "type": "ConfigVar", "label": "OLLAMA_MODEL"}, {"id": "env:LLM_DOMAIN", "type": "ConfigVar", "label": "LLM_DOMAIN"}, {"id": "env:LLM_GLOSSARY", "type": "ConfigVar", "label": "LLM_GLOSSARY"}, {"id": "mod:main", "type": "Module", "label": "main", "file": "main.py"}, {"id": "env:WHISPER_MODEL", "type": "ConfigVar", "label": "WHISPER_MODEL"}, {"id": "env:WHISPER_LANGUAGE", "type": "ConfigVar", "label": "WHISPER_LANGUAGE"}, {"id": "env:WHISPER_DEVICE", "type": "ConfigVar", "label": "WHISPER_DEVICE"}, {"id": "env:WHISPER_COMPUTE_TYPE", "type": "ConfigVar", "label": "WHISPER_COMPUTE_TYPE"}, {"id": "env:OUTPUT_DIR", "type": "ConfigVar", "label": "OUTPUT_DIR"}, {"id": "env:DENOISE_LEVEL", "type": "ConfigVar", "label": "DENOISE_LEVEL"}, {"id": "env:SILENCE_THRESHOLD_DB", "type": "ConfigVar", "label": "SILENCE_THRESHOLD_DB"}, {"id": "env:SILENCE_MIN_SEC", "type": "ConfigVar", "label": "SILENCE_MIN_SEC"}, {"id": "env:VAD_THRESHOLD", "type": "ConfigVar", "label": "VAD_THRESHOLD"}, {"id": "env:VAD_MIN_SILENCE_MS", "type": "ConfigVar", "label": "VAD_MIN_SILENCE_MS"}, {"id": "env:VAD_SPEECH_PAD_MS", "type": "ConfigVar", "label": "VAD_SPEECH_PAD_MS"}, {"id": "env:COMPRESSION_RATIO_THRESHOLD", "type": "ConfigVar", "label": "COMPRESSION_RATIO_THRESHOLD"}, {"id": "env:LOG_PROB_THRESHOLD", "type": "ConfigVar", "label": "LOG_PROB_THRESHOLD"}, {"id": "env:NO_SPEECH_THRESHOLD", "type": "ConfigVar", "label": "NO_SPEECH_THRESHOLD"}, {"id": "env:REPETITION_PENALTY", "type": "ConfigVar", "label": "REPETITION_PENALTY"}, {"id": "env:DENOISE_ENABLED", "type": "ConfigVar", "label": "DENOISE_ENABLED"}, {"id": "env:LLM_ENABLED", "type": "ConfigVar", "label": "LLM_ENABLED"}, {"id": "env:CONDITION_ON_PREVIOUS_TEXT", "type": "ConfigVar", "label": "CONDITION_ON_PREVIOUS_TEXT"}, {"id": "mod:download_models", "type": "Module", "label": "download_models", "file": "download_models.py"}], "edges": [{"source": "mod:audio", "target": "mod:utils", "type": "imports", "evidence": "audio.py:15"}, {"source": "mod:denoise", "target": "mod:utils", "type": "imports", "evidence": "denoise.py:19"}, {"source": "mod:denoise", "target": "env:HW_DENOISE_ENGINE", "type": "reads-env", "evidence": "denoise.py:100"}, {"source": "mod:diarize", "target": "mod:transcribe", "type": "imports", "evidence": "diarize.py:18"}, {"source": "mod:diarize", "target": "mod:utils", "type": "imports", "evidence": "diarize.py:19"}, {"source": "mod:diarize", "target": "env:HF_TOKEN", "type": "reads-env", "evidence": "diarize.py:89"}, {"source": "mod:export", "target": "mod:transcribe", "type": "imports", "evidence": "export.py:13"}, {"source": "mod:export", "target": "mod:utils", "type": "imports", "evidence": "export.py:14"}, {"source": "mod:hardware_detect", "target": "mod:utils", "type": "imports", "evidence": "hardware_detect.py:18"}, {"source": "mod:model_locator", "target": "mod:utils", "type": "imports", "evidence": "model_locator.py:18"}, {"source": "mod:model_locator", "target": "model:whisper", "type": "resolves", "evidence": "model_locator.py:87"}, {"source": "mod:model_locator", "target": "env:USERNAME", "type": "reads-env", "evidence": "model_locator.py:30"}, {"source": "mod:postprocess", "target": "mod:transcribe", "type": "imports", "evidence": "postprocess.py:15"}, {"source": "mod:postprocess", "target": "mod:utils", "type": "imports", "evidence": "postprocess.py:16"}, {"source": "mod:postprocess", "target": "env:LLM_CONF_THRESHOLD", "type": "reads-env", "evidence": "postprocess.py:24"}, {"source": "mod:postprocess", "target": "env:OLLAMA_MODEL", "type": "reads-env", "evidence": "postprocess.py:204"}, {"source": "mod:postprocess", "target": "env:LLM_DOMAIN", "type": "reads-env", "evidence": "postprocess.py:212"}, {"source": "mod:postprocess", "target": "env:LLM_GLOSSARY", "type": "reads-env", "evidence": "postprocess.py:78"}, {"source": "mod:transcribe", "target": "mod:utils", "type": "imports", "evidence": "transcribe.py:18"}, {"source": "mod:transcribe", "target": "mod:model_locator", "type": "imports", "evidence": "transcribe.py:48"}, {"source": "mod:transcribe", "target": "model:whisper", "type": "resolves", "evidence": "transcribe.py:49"}, {"source": "mod:main", "target": "env:WHISPER_MODEL", "type": "reads-env", "evidence": "main.py:101"}, {"source": "mod:main", "target": "env:WHISPER_LANGUAGE", "type": "reads-env", "evidence": "main.py:102"}, {"source": "mod:main", "target": "env:WHISPER_DEVICE", "type": "reads-env", "evidence": "main.py:103"}, {"source": "mod:main", "target": "env:WHISPER_COMPUTE_TYPE", "type": "reads-env", "evidence": "main.py:104"}, {"source": "mod:main", "target": "env:OUTPUT_DIR", "type": "reads-env", "evidence": "main.py:105"}, {"source": "mod:main", "target": "env:OLLAMA_MODEL", "type": "reads-env", "evidence": "main.py:114"}, {"source": "mod:main", "target": "env:LLM_DOMAIN", "type": "reads-env", "evidence": "main.py:115"}, {"source": "mod:main", "target": "mod:audio", "type": "imports", "evidence": "main.py:264"}, {"source": "mod:main", "target": "mod:transcribe", "type": "imports", "evidence": "main.py:265"}, {"source": "mod:main", "target": "mod:diarize", "type": "imports", "evidence": "main.py:266"}, {"source": "mod:main", "target": "mod:export", "type": "imports", "evidence": "main.py:267"}, {"source": "mod:main", "target": "mod:denoise", "type": "imports", "evidence": "main.py:268"}, {"source": "mod:main", "target": "mod:postprocess", "type": "imports", "evidence": "main.py:269"}, {"source": "mod:main", "target": "mod:model_locator", "type": "imports", "evidence": "main.py:57"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "imports", "evidence": "main.py:71"}, {"source": "mod:main", "target": "env:DENOISE_LEVEL", "type": "reads-env", "evidence": "main.py:112"}, {"source": "mod:main", "target": "env:SILENCE_THRESHOLD_DB", "type": "reads-env", "evidence": "main.py:116"}, {"source": "mod:main", "target": "env:SILENCE_MIN_SEC", "type": "reads-env", "evidence": "main.py:117"}, {"source": "mod:main", "target": "env:VAD_THRESHOLD", "type": "reads-env", "evidence": "main.py:119"}, {"source": "mod:main", "target": "env:VAD_MIN_SILENCE_MS", "type": "reads-env", "evidence": "main.py:120"}, {"source": "mod:main", "target": "env:VAD_SPEECH_PAD_MS", "type": "reads-env", "evidence": "main.py:121"}, {"source": "mod:main", "target": "env:COMPRESSION_RATIO_THRESHOLD", "type": "reads-env", "evidence": "main.py:125"}, {"source": "mod:main", "target": "env:LOG_PROB_THRESHOLD", "type": "reads-env", "evidence": "main.py:126"}, {"source": "mod:main", "target": "env:NO_SPEECH_THRESHOLD", "type": "reads-env", "evidence": "main.py:127"}, {"source": "mod:main", "target": "env:REPETITION_PENALTY", "type": "reads-env", "evidence": "main.py:128"}, {"source": "mod:main", "target": "env:HW_DENOISE_ENGINE", "type": "reads-env", "evidence": "main.py:281"}, {"source": "mod:main", "target": "mod:utils", "type": "imports", "evidence": "main.py:444"}, {"source": "mod:main", "target": "env:DENOISE_ENABLED", "type": "reads-env", "evidence": "main.py:111"}, {"source": "mod:main", "target": "env:LLM_ENABLED", "type": "reads-env", "evidence": "main.py:113"}, {"source": "mod:main", "target": "env:CONDITION_ON_PREVIOUS_TEXT", "type": "reads-env", "evidence": "main.py:124"}, {"source": "mod:audio", "target": "mod:utils", "type": "calls", "evidence": "audio.py:17", "via": "get_logger"}, {"source": "mod:audio", "target": "mod:utils", "type": "calls", "evidence": "audio.py:43", "via": "is_audio_file"}, {"source": "mod:denoise", "target": "mod:utils", "type": "calls", "evidence": "denoise.py:21", "via": "get_logger"}, {"source": "mod:diarize", "target": "mod:utils", "type": "calls", "evidence": "diarize.py:21", "via": "get_logger"}, {"source": "mod:export", "target": "mod:utils", "type": "calls", "evidence": "export.py:16", "via": "get_logger"}, {"source": "mod:export", "target": "mod:transcribe", "type": "calls", "evidence": "export.py:32", "via": "Seg"}, {"source": "mod:export", "target": "mod:utils", "type": "calls", "evidence": "export.py:116", "via": "stem"}, {"source": "mod:export", "target": "mod:utils", "type": "calls", "evidence": "export.py:164", "via": "seconds_to_srt_time"}, {"source": "mod:hardware_detect", "target": "mod:utils", "type": "calls", "evidence": "hardware_detect.py:20", "via": "get_logger"}, {"source": "mod:model_locator", "target": "mod:utils", "type": "calls", "evidence": "model_locator.py:20", "via": "get_logger"}, {"source": "mod:postprocess", "target": "mod:utils", "type": "calls", "evidence": "postprocess.py:18", "via": "get_logger"}, {"source": "mod:transcribe", "target": "mod:utils", "type": "calls", "evidence": "transcribe.py:20", "via": "get_logger"}, {"source": "mod:transcribe", "target": "mod:model_locator", "type": "calls", "evidence": "transcribe.py:49", "via": "resolve"}, {"source": "mod:main", "target": "mod:audio", "type": "calls", "evidence": "main.py:271", "via": "inspect"}, {"source": "mod:main", "target": "mod:model_locator", "type": "calls", "evidence": "main.py:58", "via": "scan_available"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "calls", "evidence": "main.py:72", "via": "detect"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "calls", "evidence": "main.py:73", "via": "apply_to_env"}, {"source": "mod:main", "target": "mod:denoise", "type": "calls", "evidence": "main.py:282", "via": "denoise"}, {"source": "mod:main", "target": "mod:transcribe", "type": "calls", "evidence": "main.py:384", "via": "transcribe"}, {"source": "mod:main", "target": "mod:postprocess", "type": "calls", "evidence": "main.py:405", "via": "postprocess"}, {"source": "mod:main", "target": "mod:diarize", "type": "calls", "evidence": "main.py:412", "via": "do_diarize"}, {"source": "mod:main", "target": "mod:export", "type": "calls", "evidence": "main.py:413", "via": "export_all"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "calls", "evidence": "main.py:698", "via": "HardwareProfile"}, {"source": "mod:main", "target": "mod:export", "type": "calls", "evidence": "main.py:364", "via": "export_final"}, {"source": "mod:main", "target": "mod:utils", "type": "calls", "evidence": "main.py:452", "via": "is_audio_file"}, {"source": "mod:main", "target": "mod:export", "type": "calls", "evidence": "main.py:344", "via": "export_chunk"}, {"source": "mod:download_models", "target": "env:WHISPER_MODEL", "type": "reads-env", "evidence": "download_models.py:46"}, {"source": "mod:download_models", "target": "env:WHISPER_DEVICE", "type": "reads-env", "evidence": "download_models.py:47"}, {"source": "mod:download_models", "target": "env:WHISPER_COMPUTE_TYPE", "type": "reads-env", "evidence": "download_models.py:48"}, {"source": "mod:download_models", "target": "env:HF_TOKEN", "type": "reads-env", "evidence": "download_models.py:49"}]}, "data_flow": {"schema": {"node_types": ["DataState"], "edge_types": ["reads", "replaces", "derives", "edits", "annotates", "emits"]}, "nodes": [{"id": "d:raw", "type": "DataState", "label": "Raw audio (original file)", "kind": "audio", "props": {"mutable": false, "on_disk": true, "note": "source file provided by the user"}}, {"id": "d:validated", "type": "DataState", "label": "Validated audio", "kind": "audio_meta", "props": {"mutable": false, "derived_from": "d:raw", "note": "only metadata added (duration/format), audio unchanged"}}, {"id": "d:denoised", "type": "DataState", "label": "Denoised audio", "kind": "audio", "props": {"mutable": false, "reversible": false, "lossy": true, "derived_from": "d:validated", "note": "audio data replaced; original kept separately, this step itself is not recoverable"}}, {"id": "d:chunkwav", "type": "DataState", "label": "WAV of 1 chunk", "kind": "audio", "props": {"mutable": false, "derived_from": "d:denoised", "note": "cut one segment by time window"}}, {"id": "d:segs_raw", "type": "DataState", "label": "Raw segments", "kind": "segments", "props": {"mutable": true, "derived_from": "d:chunkwav", "fields": ["start", "end", "text"], "note": "timestamp relative to chunk origin, not yet shifted to the original file"}}, {"id": "d:segs_shift", "type": "DataState", "label": "Timestamp-shifted segments", "kind": "segments", "props": {"mutable": true, "reversible": true, "derived_from": "d:segs_raw", "note": "only start/end change (+= chunk_start); text unchanged"}}, {"id": "d:segs_llm", "type": "DataState", "label": "LLM-corrected segments", "kind": "segments", "props": {"mutable": true, "reversible": false, "lossy": true, "derived_from": "d:segs_shift", "fields_changed": ["text"], "note": "LLM edits text; risk of hallucination/line deletion — this characteristic belongs to the data state, not the edge"}}, {"id": "d:segs_spk", "type": "DataState", "label": "Segments with speaker", "kind": "segments", "props": {"mutable": true, "derived_from": "d:segs_llm", "fields_added": ["speaker"], "note": "add speaker label, text/timestamp unchanged"}}, {"id": "d:part", "type": "DataState", "label": "_partNN.docx/srt file", "kind": "file", "props": {"on_disk": true, "derived_from": "d:segs_spk", "note": "export each chunk to disk"}}, {"id": "d:final", "type": "DataState", "label": "Final file (merged)", "kind": "file", "props": {"on_disk": true, "derived_from": "d:part", "note": "merge all chunks into a complete file"}}], "edges": [{"source": "d:raw", "target": "d:validated", "type": "reads", "seq": 1, "route": "reads", "op": "audio.inspect()", "evidence": "main.py:271"}, {"source": "d:validated", "target": "d:denoised", "type": "replaces", "seq": 2, "route": "replaces", "op": "denoise.run()", "evidence": "main.py:282"}, {"source": "d:denoised", "target": "d:chunkwav", "type": "derives", "seq": 3, "route": "derives", "op": "_extract_chunk()", "evidence": "main.py:298"}, {"source": "d:chunkwav", "target": "d:segs_raw", "type": "derives", "seq": 4, "route": "derives", "op": "transcribe.run()", "evidence": "main.py:304"}, {"source": "d:segs_raw", "target": "d:segs_shift", "type": "edits", "seq": 5, "route": "edits", "op": "seg.start += start", "evidence": "main.py:322"}, {"source": "d:segs_shift", "target": "d:segs_llm", "type": "edits", "seq": 6, "route": "edits", "op": "postprocess.run()", "evidence": "main.py:327"}, {"source": "d:segs_llm", "target": "d:segs_spk", "type": "annotates", "seq": 7, "route": "annotates", "op": "diarize.run()", "evidence": "main.py:336"}, {"source": "d:segs_spk", "target": "d:part", "type": "emits", "seq": 8, "route": "emits", "op": "export_chunk()", "evidence": "main.py:344"}, {"source": "d:part", "target": "d:final", "type": "emits", "seq": 9, "route": "emits", "op": "export_final()", "evidence": "main.py:364"}], "edge_index": [{"seq": 1, "dir": "d:raw -> d:validated", "route": "reads", "answer_in": "d:validated", "op": "audio.inspect()", "evidence": "main.py:271"}, {"seq": 2, "dir": "d:validated -> d:denoised", "route": "replaces", "answer_in": "d:denoised", "op": "denoise.run()", "evidence": "main.py:282"}, {"seq": 3, "dir": "d:denoised -> d:chunkwav", "route": "derives", "answer_in": "d:chunkwav", "op": "_extract_chunk()", "evidence": "main.py:298"}, {"seq": 4, "dir": "d:chunkwav -> d:segs_raw", "route": "derives", "answer_in": "d:segs_raw", "op": "transcribe.run()", "evidence": "main.py:304"}, {"seq": 5, "dir": "d:segs_raw -> d:segs_shift", "route": "edits", "answer_in": "d:segs_shift", "op": "seg.start += start", "evidence": "main.py:322"}, {"seq": 6, "dir": "d:segs_shift -> d:segs_llm", "route": "edits", "answer_in": "d:segs_llm", "op": "postprocess.run()", "evidence": "main.py:327"}, {"seq": 7, "dir": "d:segs_llm -> d:segs_spk", "route": "annotates", "answer_in": "d:segs_spk", "op": "diarize.run()", "evidence": "main.py:336"}, {"seq": 8, "dir": "d:segs_spk -> d:part", "route": "emits", "answer_in": "d:part", "op": "export_chunk()", "evidence": "main.py:344"}, {"seq": 9, "dir": "d:part -> d:final", "route": "emits", "answer_in": "d:final", "op": "export_final()", "evidence": "main.py:364"}], "design": {"edge_role": "a path to the answer, NOT the answer", "node_role": "where the answer is held (data characteristics in node.props)", "edge_index_role": "summary table for a query to look up quickly by seq, avoiding opening each node", "route_vocab": ["reads", "replaces", "derives", "edits", "annotates", "emits"], "route_note": "route is only for routing/filtering branches; to know how data changes, enter node.answer_in"}}, "domain_concept": {"schema": {"node_types": ["Concept"], "edge_types": ["semantic (decides/reduces/edits/increases/...)"]}, "nodes": [{"id": "c:stt", "type": "Concept", "label": "Speech-to-text"}, {"id": "c:vad", "type": "Concept", "label": "VAD (silence filtering)"}, {"id": "c:chunk", "type": "Concept", "label": "Chunking"}, {"id": "c:silence", "type": "Concept", "label": "Silence detection"}, {"id": "c:halluc", "type": "Concept", "label": "Hallucination"}, {"id": "c:llm", "type": "Concept", "label": "LLM post-process"}, {"id": "c:diar", "type": "Concept", "label": "Diarization"}, {"id": "c:engine", "type": "Concept", "label": "ASR/denoise engine"}, {"id": "c:hwmode", "type": "Concept", "label": "Hardware mode"}, {"id": "c:denoise", "type": "Concept", "label": "Denoise"}, {"id": "c:speaker", "type": "Concept", "label": "Speaker labels"}, {"id": "c:quality", "type": "Concept", "label": "Transcript quality"}], "edges": [{"source": "c:hwmode", "target": "c:engine", "type": "semantic", "relation": "decides"}, {"source": "c:engine", "target": "c:stt", "type": "semantic", "relation": "provides"}, {"source": "c:vad", "target": "c:silence", "type": "semantic", "relation": "based on"}, {"source": "c:chunk", "target": "c:silence", "type": "semantic", "relation": "cuts at"}, {"source": "c:chunk", "target": "c:halluc", "type": "semantic", "relation": "reduces"}, {"source": "c:vad", "target": "c:halluc", "type": "semantic", "relation": "reduces"}, {"source": "c:denoise", "target": "c:quality", "type": "semantic", "relation": "increases"}, {"source": "c:stt", "target": "c:halluc", "type": "semantic", "relation": "produces"}, {"source": "c:llm", "target": "c:halluc", "type": "semantic", "relation": "fixes"}, {"source": "c:llm", "target": "c:quality", "type": "semantic", "relation": "increases"}, {"source": "c:diar", "target": "c:speaker", "type": "semantic", "relation": "assigns"}, {"source": "c:stt", "target": "c:quality", "type": "semantic", "relation": "affects"}]}};
+const COLORS = {Module:"#378ADD",Function:"#7F77DD",ConfigVar:"#EF9F27",Model:"#1D9E75",
+                DataState:"#1D9E75",Concept:"#D4537E"};
+const G = window.GRAPHS;
+const KEYS = Object.keys(G);
+const LABELS = {code_dependency:"Code dependency",data_flow:"Data flow",domain_concept:"Domain concept"};
+let cur = KEYS[0];
+
+const svg = d3.select("#svg");
+let W=window.innerWidth-320, H=window.innerHeight-56;
+svg.attr("viewBox",[0,0,W,H]);
+const root = svg.append("g");
+svg.call(d3.zoom().scaleExtent([0.3,3]).on("zoom",e=>root.attr("transform",e.transform)));
+
+svg.append("defs").append("marker").attr("id","arr").attr("viewBox","0 0 10 10")
+  .attr("refX",22).attr("refY",5).attr("markerWidth",6).attr("markerHeight",6)
+  .attr("orient","auto").append("path").attr("d","M0 0L10 5L0 10")
+  .attr("fill","#4a5068");
+
+const tabs = d3.select("#tabs");
+KEYS.forEach(k=>tabs.append("div").attr("class","tab"+(k===cur?" active":""))
+  .text(LABELS[k]).on("click",()=>{cur=k;d3.selectAll(".tab").classed("active",false);
+  d3.select(event.target).classed("active",true);draw();}));
+
+let sim;
+function draw(){
+  root.selectAll("*").remove();
+  const g = G[cur];
+  const nodes = g.nodes.map(d=>Object.assign({},d));
+  const edges = g.edges.map(d=>Object.assign({},d));
+
+  sim = d3.forceSimulation(nodes)
+    .force("link",d3.forceLink(edges).id(d=>d.id).distance(110))
+    .force("charge",d3.forceManyBody().strength(-380))
+    .force("center",d3.forceCenter(W/2,H/2))
+    .force("collide",d3.forceCollide(34));
+
+  const ROUTE_COLOR={reads:"#888780",replaces:"#D85A30",derives:"#378ADD",edits:"#EF9F27",annotates:"#7F77DD",emits:"#1D9E75"};
+  const link = root.append("g").selectAll("line").data(edges).join("line")
+    .attr("stroke",d=>ROUTE_COLOR[d.route]||"#3a4156").attr("stroke-width",1.8).attr("marker-end","url(#arr)")
+    .style("cursor","pointer")
+    .on("click",(e,d)=>showEdge(d));
+
+  const elabel = root.append("g").selectAll("text").data(edges).join("text")
+    .attr("class","edge-lbl").attr("text-anchor","middle")
+    .text(d=>d.type==="reads-env"?"":(d.seq?("#"+d.seq+" · "+d.route):(d.relation||d.op||d.via||d.type)));
+
+  const node = root.append("g").selectAll("g").data(nodes).join("g")
+    .style("cursor","pointer").call(drag())
+    .on("click",(e,d)=>showNode(d,edges));
+  node.append("circle").attr("r",16)
+    .attr("fill",d=>COLORS[d.type]||"#888").attr("stroke","#0f1117").attr("stroke-width",2);
+  node.append("text").attr("dy",30).attr("text-anchor","middle")
+    .attr("fill","#e6e8ee").attr("font-size",11).text(d=>d.label);
+
+  sim.on("tick",()=>{
+    link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+        .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y);
+    elabel.attr("x",d=>(d.source.x+d.target.x)/2).attr("y",d=>(d.source.y+d.target.y)/2-3);
+    node.attr("transform",d=>`translate(${d.x},${d.y})`);
+  });
+
+  buildLegend(g);
+  buildRanks(g);
+}
+function drag(){
+  return d3.drag()
+    .on("start",(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+    .on("drag",(e,d)=>{d.fx=e.x;d.fy=e.y;})
+    .on("end",(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;});
+}
+function showNode(d,edges){
+  const ins=edges.filter(e=>(e.target.id||e.target)===d.id).length;
+  const outs=edges.filter(e=>(e.source.id||e.source)===d.id).length;
+  let props="";
+  if(d.props){
+    props="<br><span>— data characteristics (the answer is here) —</span>";
+    for(const k in d.props){
+      props+=`<br><span>${k}:</span> ${typeof d.props[k]==='object'?JSON.stringify(d.props[k]):d.props[k]}`;
+    }
+  }
+  document.getElementById("info").innerHTML=
+    `<b>${d.label}</b><br><span>type:</span> ${d.type}${d.kind?(" · "+d.kind):""}<br>
+     <span>in-degree:</span> ${ins} · <span>out-degree:</span> ${outs}<br>
+     <span>id:</span> <span class="ev">${d.id}</span>${props}`;
+}
+function showEdge(d){
+  const s=d.source.label||d.source, t=d.target.label||d.target;
+  const tid=d.target.id||d.target;
+  let extra="";
+  if(d.seq) extra+=`<br><span>seq:</span> #${d.seq}`;
+  if(d.route) extra+=`<br><span>route:</span> ${d.route}`;
+  if(d.op) extra+=`<br><span>op:</span> ${d.op}`;
+  if(d.evidence) extra+=`<br><span>evidence:</span> <span class="ev">${d.evidence}</span>`;
+  if(d.relation) extra+=`<br><span>relation:</span> ${d.relation}`;
+  if(d.via) extra+=`<br><span>via function:</span> <span class="ev">${d.via}()</span>`;
+  if(d.seq) extra+=`<br><span class="hint">The edge is a path, not the answer. The answer is in the target node: <span class="ev">${tid}</span></span>`;
+  document.getElementById("info").innerHTML=
+    `<b>${s} → ${t}</b><br><span>loại cạnh:</span> ${d.type}${extra}`;
+}
+function buildLegend(g){
+  const types=[...new Set(g.nodes.map(n=>n.type))];
+  let routeLegend="";
+  if(cur==="data_flow"){
+    const RC={reads:"#888780",replaces:"#D85A30",derives:"#378ADD",edits:"#EF9F27",annotates:"#7F77DD",emits:"#1D9E75"};
+    routeLegend="<h2 style='margin-top:14px'>Route (edge color)</h2>"+
+      Object.entries(RC).map(([r,c])=>`<div><span class="dot" style="background:${c}"></span>${r}</div>`).join("");
+  }
+  document.getElementById("legend").innerHTML="<h2>Node types</h2>"+
+    types.map(t=>`<div><span class="dot" style="background:${COLORS[t]||'#888'}"></span>${t}</div>`).join("")+
+    routeLegend+
+    `<div class="hint">Edges: ${g.schema.edge_types.join(" · ")}</div>`;
+}
+function buildRanks(g){
+  if(cur==="data_flow" && g.edge_index){
+    const rows=g.edge_index.map(r=>
+      `<div class="rank"><b>#${r.seq}</b> · ${r.route} · <span class="ev">${r.answer_in}</span></div>`).join("");
+    document.getElementById("ranks").innerHTML=
+      "<h2 style='margin-top:18px'>Edge summary table</h2>"+
+      "<div class='hint'>A query reads this table first: filter by route, then enter the 'answer_in' node for the answer — not open every node.</div>"+rows;
+    return;
+  }
+  if(cur!=="code_dependency"){document.getElementById("ranks").innerHTML="";return;}
+  const indeg={};
+  g.edges.forEach(e=>{const t=e.target.id||e.target;indeg[t]=(indeg[t]||0)+1;});
+  const top=Object.entries(indeg).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const lbl=id=>(g.nodes.find(n=>n.id===id)||{}).label||id;
+  document.getElementById("ranks").innerHTML="<h2 style='margin-top:18px'>Hub (in-degree cao)</h2>"+
+    "<div class='hint'>The most depended-upon module — editing it risks wide propagation.</div>"+
+    top.map(([id,c])=>`<div class="rank"><b>${c}</b> · ${lbl(id)}</div>`).join("");
+}
+function dl(){
+  const blob=new Blob([JSON.stringify(window.GRAPHS,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="pipeline_v11_graphs.json";a.click();
+}
+window.addEventListener("resize",()=>{W=window.innerWidth-320;H=window.innerHeight-56;
+  svg.attr("viewBox",[0,0,W,H]);if(sim){sim.force("center",d3.forceCenter(W/2,H/2));sim.alpha(.3).restart();}});
+draw();
+</script>
+</body>
+</html>

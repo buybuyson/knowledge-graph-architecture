@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PoC — Transparent-Sphere Graphing · Pipeline V11</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Spline+Sans+Mono:wght@400;500&display=swap');
+  :root{
+    --bg:#0a0e14; --panel:#11161f; --ink:#e8ebf0; --mut:#8893a6; --faint:#4a5366;
+    --line:#1e2632; --hub:#e0a93b; --leaf:#5b8fd6; --legit:#d8593c; --jump:#3fae8f;
+    --fam:#9b7fde;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:'Spline Sans Mono',ui-monospace,monospace;line-height:1.6}
+  .head{padding:22px 28px 16px;border-bottom:1px solid var(--line)}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:25px;margin:0 0 4px;letter-spacing:-.3px}
+  .sub{color:var(--mut);font-size:12.5px}
+  .tag{display:inline-block;font-size:10.5px;color:var(--hub);border:1px solid var(--line);
+       padding:1px 7px;border-radius:20px;margin-left:8px;vertical-align:middle}
+  .wrap{display:flex;flex-wrap:wrap}
+  .stage{flex:1;min-width:340px;position:relative}
+  svg{width:100%;height:560px;display:block}
+  aside{width:340px;border-left:1px solid var(--line);padding:20px;min-height:560px}
+  aside h2{font-family:'Fraunces',serif;font-size:13px;letter-spacing:.5px;text-transform:uppercase;
+           color:var(--mut);margin:0 0 12px;font-weight:500}
+  .q{margin-bottom:18px}
+  .q label{display:block;font-size:11px;color:var(--mut);margin-bottom:6px}
+  select,button{width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line);
+       border-radius:9px;padding:10px 12px;font-family:inherit;font-size:13px;cursor:pointer}
+  button{background:var(--hub);color:#1a1206;border:none;font-weight:500;margin-top:10px;transition:.15s}
+  button:hover{filter:brightness(1.08)}
+  button.ghost{background:var(--panel);color:var(--mut);border:1px solid var(--line);font-weight:400}
+  .log{font-size:12px;line-height:1.75}
+  .log .step{padding:8px 0;border-bottom:1px solid var(--line);opacity:0;transform:translateY(4px);
+       animation:rise .4s forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .log .k{color:var(--hub)} .log .leafk{color:var(--leaf)} .log .jk{color:var(--jump)}
+  .log .lg{color:var(--legit)} .log .fam{color:var(--fam)}
+  .pill{display:inline-block;font-size:10px;padding:1px 6px;border-radius:5px;margin-right:4px}
+  .legend{margin-top:18px;font-size:11px;color:var(--mut);line-height:2}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+  .evi{font-size:10.5px;color:var(--faint)}
+  .note{font-size:11px;color:var(--mut);margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  text{font-family:'Spline Sans Mono',monospace}
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Transparent sphere — graphing the query<span class="tag">PoC · real V11</span></h1>
+  <div class="sub">10 module nodes · 48 edges · extracted via AST, each edge has file:line evidence · families assigned by hub</div>
+</div>
+<div class="wrap">
+  <div class="stage"><svg id="svg" viewBox="0 0 600 560"></svg></div>
+  <aside>
+    <h2>Graphing</h2>
+    <div class="q">
+      <label>Choose a question (already graphed)</label>
+      <select id="qsel"></select>
+      <button onclick="runQuery()">Fire query →</button>
+      <button class="ghost" onclick="resetView()">Reset</button>
+    </div>
+    <h2 style="margin-top:8px">Progress</h2>
+    <div class="log" id="log"><div class="evi">Choose a query then click “Fire query.” The system will: wake same-family hubs → activate condition edges → check info match on the edge → jump-merge if two families each hold a fragment.</div></div>
+    <div class="legend">
+      <div><span class="dot" style="background:var(--hub)"></span>Hub (family center)</div>
+      <div><span class="dot" style="background:var(--leaf)"></span>Leaf / regular node</div>
+      <div><span class="dot" style="background:var(--fam)"></span>Multi-family node</div>
+      <div><span class="dot" style="background:var(--jump)"></span>Cross-check jump</div>
+      <div><span class="dot" style="background:var(--legit)"></span>Suspected-legitimacy edge</div>
+    </div>
+    <div class="note">A jump is valid only when the two paths are <b>independent</b> (no shared ancestor). The system checks the lowest-common-ancestor before merging — if they share a root, that is a cross-check illusion and is rejected.</div>
+  </aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script>window.GRAPH={"meta": {"source": "pipeline V11 (code_dependency graph)", "extracted_by": "AST static analysis — moi edge co evidence file:line", "hubs": ["mod:utils", "mod:transcribe", "mod:export", "mod:hardware_detect", "mod:model_locator"], "hub_scores": {"mod:utils": 21, "mod:transcribe": 6, "mod:export": 4, "mod:hardware_detect": 4, "mod:model_locator": 4}, "schema": {"node_fields": ["id", "type", "label", "families", "is_hub", "in_degree", "multi_family"], "edge_fields": ["source", "target", "type", "evidence", "carries", "minus_class"], "minus_classes": {"operational": "(-) sua duoc, tao luong, khong pha rang buoc", "legitimacy": "(-) pha rang buoc nhi phan (vd vong phu thuoc) — khong sua bang cach them", "legitimacy?": "diem nghi van: resolve truc tiep thay vi qua registry tap trung"}}}, "nodes": [{"id": "mod:audio", "type": "Module", "label": "audio", "file": "audio.py", "families": ["mod:utils"], "is_hub": false, "in_degree": 3, "multi_family": false}, {"id": "mod:utils", "type": "Module", "label": "utils", "families": [], "is_hub": true, "in_degree": 21, "multi_family": false}, {"id": "mod:denoise", "type": "Module", "label": "denoise", "file": "denoise.py", "families": ["mod:utils"], "is_hub": false, "in_degree": 2, "multi_family": false}, {"id": "mod:diarize", "type": "Module", "label": "diarize", "file": "diarize.py", "families": ["mod:transcribe", "mod:utils"], "is_hub": false, "in_degree": 2, "multi_family": true}, {"id": "mod:transcribe", "type": "Module", "label": "transcribe", "families": ["mod:model_locator", "mod:utils"], "is_hub": true, "in_degree": 6, "multi_family": true}, {"id": "mod:export", "type": "Module", "label": "export", "file": "export.py", "families": ["mod:transcribe", "mod:utils"], "is_hub": true, "in_degree": 4, "multi_family": true}, {"id": "mod:hardware_detect", "type": "Module", "label": "hardware_detect", "file": "hardware_detect.py", "families": ["mod:utils"], "is_hub": true, "in_degree": 4, "multi_family": false}, {"id": "mod:model_locator", "type": "Module", "label": "model_locator", "file": "model_locator.py", "families": ["mod:utils"], "is_hub": true, "in_degree": 4, "multi_family": false}, {"id": "mod:postprocess", "type": "Module", "label": "postprocess", "file": "postprocess.py", "families": ["mod:transcribe", "mod:utils"], "is_hub": false, "in_degree": 2, "multi_family": true}, {"id": "mod:main", "type": "Module", "label": "main", "file": "main.py", "families": ["mod:export", "mod:hardware_detect", "mod:model_locator", "mod:transcribe", "mod:utils"], "is_hub": false, "in_degree": 0, "multi_family": true}], "edges": [{"source": "mod:audio", "target": "mod:utils", "type": "imports", "evidence": "audio.py:15", "carries": "imports", "minus_class": "operational"}, {"source": "mod:denoise", "target": "mod:utils", "type": "imports", "evidence": "denoise.py:19", "carries": "imports", "minus_class": "operational"}, {"source": "mod:diarize", "target": "mod:transcribe", "type": "imports", "evidence": "diarize.py:18", "carries": "imports", "minus_class": "operational"}, {"source": "mod:diarize", "target": "mod:utils", "type": "imports", "evidence": "diarize.py:19", "carries": "imports", "minus_class": "operational"}, {"source": "mod:diarize", "target": "mod:audio", "type": "imports", "evidence": "diarize.py:92", "carries": "imports", "minus_class": "operational"}, {"source": "mod:export", "target": "mod:transcribe", "type": "imports", "evidence": "export.py:13", "carries": "imports", "minus_class": "operational"}, {"source": "mod:export", "target": "mod:utils", "type": "imports", "evidence": "export.py:14", "carries": "imports", "minus_class": "operational"}, {"source": "mod:hardware_detect", "target": "mod:utils", "type": "imports", "evidence": "hardware_detect.py:18", "carries": "imports", "minus_class": "operational"}, {"source": "mod:model_locator", "target": "mod:utils", "type": "imports", "evidence": "model_locator.py:18", "carries": "imports", "minus_class": "operational"}, {"source": "mod:postprocess", "target": "mod:transcribe", "type": "imports", "evidence": "postprocess.py:15", "carries": "imports", "minus_class": "operational"}, {"source": "mod:postprocess", "target": "mod:utils", "type": "imports", "evidence": "postprocess.py:16", "carries": "imports", "minus_class": "operational"}, {"source": "mod:transcribe", "target": "mod:utils", "type": "imports", "evidence": "transcribe.py:18", "carries": "imports", "minus_class": "operational"}, {"source": "mod:transcribe", "target": "mod:model_locator", "type": "imports", "evidence": "transcribe.py:48", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:audio", "type": "imports", "evidence": "main.py:264", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:transcribe", "type": "imports", "evidence": "main.py:265", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:diarize", "type": "imports", "evidence": "main.py:266", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:export", "type": "imports", "evidence": "main.py:267", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:denoise", "type": "imports", "evidence": "main.py:268", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:postprocess", "type": "imports", "evidence": "main.py:269", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:model_locator", "type": "imports", "evidence": "main.py:57", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "imports", "evidence": "main.py:71", "carries": "imports", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:utils", "type": "imports", "evidence": "main.py:444", "carries": "imports", "minus_class": "operational"}, {"source": "mod:audio", "target": "mod:utils", "type": "calls", "evidence": "audio.py:17", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:audio", "target": "mod:utils", "type": "calls", "evidence": "audio.py:43", "via": "is_audio_file", "carries": "is_audio_file", "minus_class": "operational"}, {"source": "mod:denoise", "target": "mod:utils", "type": "calls", "evidence": "denoise.py:21", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:diarize", "target": "mod:utils", "type": "calls", "evidence": "diarize.py:21", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:export", "target": "mod:utils", "type": "calls", "evidence": "export.py:16", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:export", "target": "mod:transcribe", "type": "calls", "evidence": "export.py:32", "via": "Seg", "carries": "Seg", "minus_class": "operational"}, {"source": "mod:export", "target": "mod:utils", "type": "calls", "evidence": "export.py:116", "via": "stem", "carries": "stem", "minus_class": "operational"}, {"source": "mod:export", "target": "mod:utils", "type": "calls", "evidence": "export.py:164", "via": "seconds_to_srt_time", "carries": "seconds_to_srt_time", "minus_class": "operational"}, {"source": "mod:hardware_detect", "target": "mod:utils", "type": "calls", "evidence": "hardware_detect.py:20", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:model_locator", "target": "mod:utils", "type": "calls", "evidence": "model_locator.py:20", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:postprocess", "target": "mod:utils", "type": "calls", "evidence": "postprocess.py:18", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:transcribe", "target": "mod:utils", "type": "calls", "evidence": "transcribe.py:20", "via": "get_logger", "carries": "get_logger", "minus_class": "operational"}, {"source": "mod:transcribe", "target": "mod:model_locator", "type": "calls", "evidence": "transcribe.py:49", "via": "resolve", "carries": "resolve", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:audio", "type": "calls", "evidence": "main.py:271", "via": "inspect", "carries": "inspect", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:model_locator", "type": "calls", "evidence": "main.py:58", "via": "scan_available", "carries": "scan_available", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "calls", "evidence": "main.py:72", "via": "detect", "carries": "detect", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "calls", "evidence": "main.py:73", "via": "apply_to_env", "carries": "apply_to_env", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:denoise", "type": "calls", "evidence": "main.py:282", "via": "denoise", "carries": "denoise", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:transcribe", "type": "calls", "evidence": "main.py:384", "via": "transcribe", "carries": "transcribe", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:postprocess", "type": "calls", "evidence": "main.py:405", "via": "postprocess", "carries": "postprocess", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:diarize", "type": "calls", "evidence": "main.py:412", "via": "do_diarize", "carries": "do_diarize", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:export", "type": "calls", "evidence": "main.py:413", "via": "export_all", "carries": "export_all", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:hardware_detect", "type": "calls", "evidence": "main.py:698", "via": "HardwareProfile", "carries": "HardwareProfile", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:export", "type": "calls", "evidence": "main.py:364", "via": "export_final", "carries": "export_final", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:utils", "type": "calls", "evidence": "main.py:452", "via": "is_audio_file", "carries": "is_audio_file", "minus_class": "operational"}, {"source": "mod:main", "target": "mod:export", "type": "calls", "evidence": "main.py:344", "via": "export_chunk", "carries": "export_chunk", "minus_class": "operational"}]};</script>
+<script>
+const G = window.GRAPH;
+const HUBS = G.meta.hubs;
+const byId = {}; G.nodes.forEach(n=>byId[n.id]=n);
+const short = id => (byId[id]?byId[id].label:id).replace('mod:','');
+
+const svg = d3.select('#svg');
+const W=600,H=560,CX=W/2,CY=H/2;
+
+// layout: hub thanh vong trong, leaf vong ngoai — "cau toa tia"
+const hubSet = new Set(HUBS);
+const leaves = G.nodes.filter(n=>!hubSet.has(n.id));
+const pos = {};
+HUBS.forEach((h,i)=>{
+  const a = -Math.PI/2 + i*2*Math.PI/HUBS.length;
+  pos[h] = {x:CX+150*Math.cos(a), y:CY+150*Math.sin(a)};
+});
+leaves.forEach((n,i)=>{
+  const a = -Math.PI/2 + i*2*Math.PI/leaves.length + 0.3;
+  pos[n.id] = {x:CX+248*Math.cos(a), y:CY+248*Math.sin(a)};
+});
+
+// cau trong suot: vong ngoai
+svg.append('circle').attr('cx',CX).attr('cy',CY).attr('r',248)
+   .attr('fill','none').attr('stroke','#1e2632').attr('stroke-dasharray','3 5');
+svg.append('circle').attr('cx',CX).attr('cy',CY).attr('r',150)
+   .attr('fill','none').attr('stroke','#161d28');
+
+const elayer = svg.append('g');
+const nlayer = svg.append('g');
+
+// edges
+const E = elayer.selectAll('line').data(G.edges).join('line')
+  .attr('x1',d=>pos[d.source].x).attr('y1',d=>pos[d.source].y)
+  .attr('x2',d=>pos[d.target].x).attr('y2',d=>pos[d.target].y)
+  .attr('stroke',d=>d.minus_class && d.minus_class.startsWith('legit')?'#3a2520':'#1b2330')
+  .attr('stroke-width',0.8).attr('opacity',0.5);
+
+// nodes
+const N = nlayer.selectAll('g').data(G.nodes).join('g')
+  .attr('transform',d=>`translate(${pos[d.id].x},${pos[d.id].y})`);
+N.append('circle')
+  .attr('r',d=>hubSet.has(d.id)?Math.max(13,Math.min(24,8+d.in_degree)):11)
+  .attr('fill',d=>hubSet.has(d.id)?'#e0a93b':(d.multi_family?'#9b7fde':'#11161f'))
+  .attr('stroke',d=>hubSet.has(d.id)?'#8a6516':(d.multi_family?'#6b50b8':'#5b8fd6'))
+  .attr('stroke-width',1.4);
+N.append('text').attr('y',d=>hubSet.has(d.id)?4:-16).attr('text-anchor','middle')
+  .attr('fill','#cdd4e0').attr('font-size',11).text(d=>short(d.id));
+
+// queries — graph hoa cau hoi: moi query co cac "ho" no cham toi va thong tin can
+const QUERIES = [
+  {q:'Where is the whisper model loaded, does it go through a registry?',
+   hits:['mod:model_locator','mod:transcribe'], need:'resolve', crossCheck:true,
+   why:'Two families (model_locator + transcribe) each hold a fragment: where resolve is defined and where it is called directly.'},
+  {q:'Which environment variable controls engine selection?',
+   hits:['mod:hardware_detect'], need:'reads-env', crossCheck:false,
+   why:'A single family (hardware_detect) — the query goes straight, no jump needed.'},
+  {q:'If utils changes, what is affected?',
+   hits:['mod:utils'], need:'calls', crossCheck:false,
+   why:'utils is the heaviest hub (in-degree 21) — wide alarm, this is a high-coupling point.'},
+  {q:'Which modules make up the processing chain for one chunk?',
+   hits:['mod:transcribe','mod:export'], need:'calls', crossCheck:true,
+   why:'Two families transcribe + export each hold part of the chain — merge to build the full path.'},
+];
+const sel = document.getElementById('qsel');
+QUERIES.forEach((q,i)=>{const o=document.createElement('option');o.value=i;o.textContent=q.q;sel.appendChild(o);});
+
+const log = document.getElementById('log');
+function addStep(html,delay){
+  const d=document.createElement('div');d.className='step';d.style.animationDelay=delay+'ms';d.innerHTML=html;log.appendChild(d);
+}
+function resetView(){
+  E.attr('stroke',d=>d.minus_class&&d.minus_class.startsWith('legit')?'#3a2520':'#1b2330').attr('stroke-width',0.8).attr('opacity',0.5);
+  N.selectAll('circle').attr('stroke-width',1.4);
+  svg.selectAll('.jump').remove();
+  log.innerHTML='<div class="evi">Reset. Choose another query.</div>';
+}
+function runQuery(){
+  const Q=QUERIES[+sel.value];
+  resetView(); log.innerHTML='';
+  let t=0;
+  addStep('<span class="k">①</span> Query graphed → touches families: '+Q.hits.map(h=>'<span class="fam">'+short(h)+'</span>').join(', '),t); t+=60;
+
+  // 1) danh thuc hub cung ho
+  N.selectAll('circle').attr('stroke-width',n=>Q.hits.includes(n.id)?3.5:1.4)
+   .attr('stroke',n=>Q.hits.includes(n.id)?'#f0c869':(hubSet.has(n.id)?'#8a6516':(n.multi_family?'#6b50b8':'#5b8fd6')));
+  addStep('<span class="k">②</span> Same-family hubs <b>raise an alarm</b>. Other hubs stay quiet.',t); t+=60;
+
+  // 2) bat condition edge: edge tu hub cham, mang thong tin == need
+  const active = G.edges.filter(e=>Q.hits.includes(e.target) && (e.carries===Q.need || e.type===Q.need));
+  E.attr('opacity',d=>{
+    const on = Q.hits.includes(d.target);
+    return on?0.85:0.12;
+  }).attr('stroke',d=>{
+    if(Q.hits.includes(d.target) && (d.carries===Q.need||d.type===Q.need)) return '#e0a93b';
+    if(d.minus_class&&d.minus_class.startsWith('legit')) return '#d8593c';
+    return Q.hits.includes(d.target)?'#3a4658':'#141a24';
+  }).attr('stroke-width',d=>(Q.hits.includes(d.target)&&(d.carries===Q.need||d.type===Q.need))?2.2:0.8);
+  addStep('<span class="k">③</span> Activate <b>condition edge</b> carrying info “<span class="leafk">'+Q.need+'</span>”. Non-matching edge → off.',t); t+=60;
+
+  // 3) edge legitimacy?
+  const lg = G.edges.filter(e=>Q.hits.includes(e.target) && e.minus_class && e.minus_class.startsWith('legit'));
+  if(lg.length){
+    lg.forEach(e=>addStep('<span class="lg">⚠ legitimacy?</span> '+short(e.source)+' → '+short(e.target)+' direct resolve <span class="evi">('+e.evidence+')</span> — should go through a registry',t));
+    t+=60;
+  }
+
+  // 4) buoc nhay kiem cheo
+  if(Q.crossCheck && Q.hits.length>=2){
+    const a=pos[Q.hits[0]], b=pos[Q.hits[1]];
+    const mx=(a.x+b.x)/2, my=(a.y+b.y)/2 - 40;
+    svg.append('path').attr('class','jump')
+      .attr('d',`M${a.x} ${a.y} Q ${mx} ${my} ${b.x} ${b.y}`)
+      .attr('fill','none').attr('stroke','#3fae8f').attr('stroke-width',2.4)
+      .attr('stroke-dasharray','6 5').attr('opacity',0)
+      .transition().delay(t).duration(400).attr('opacity',0.95);
+    addStep('<span class="jk">④ jump</span> — two families each hold a fragment → <b>pass-through</b> merge, cross-check.',t); t+=60;
+    // LCA check (gia lap): hai ho deu tro toi utils? -> canh bao chung to tien
+    const fa = new Set((byId[Q.hits[0]].families||[]).concat(Q.hits[0]));
+    const fb = new Set((byId[Q.hits[1]].families||[]).concat(Q.hits[1]));
+    const common = [...fa].filter(x=>fb.has(x) && x!=='mod:utils');
+    if(common.length) addStep('<span class="lg">⚠</span> The two paths share an ancestor ('+common.map(short).join(',')+') → weak cross-check, warning.',t);
+    else addStep('<span class="jk">✓</span> The two paths are <b>independent</b> (LCA is only the base utils) → valid cross-check.',t);
+    t+=60;
+  } else {
+    addStep('<span class="k">④</span> One family → answer directly, no jump needed.',t);
+  }
+  addStep('<div class="evi" style="margin-top:6px">'+Q.why+'</div>',t);
+}
+</script>
+</body>
+</html>
