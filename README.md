@@ -1,5 +1,5 @@
 # Hierarchical Knowledge Graph Architecture for LLMs — V1.1
-
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20407674.svg)](https://doi.org/10.5281/zenodo.20407674)
 > A concept for organizing knowledge so LLMs can retrieve it more efficiently — with a partial PoC extracted from a real codebase **and a multi-AI blind benchmark measuring token cost.**
 > **Status: Concept + Partial PoC (B1→B2) + preliminary evidence of token savings. B3/O(1) not yet benchmarked. This is a serious hypothesis — testing and rebuttal are welcome.**
 
