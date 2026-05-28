@@ -1,7 +1,7 @@
-# Hierarchical Knowledge Graph Architecture for LLMs — V1.2
-
-> A concept for organizing knowledge so LLMs can retrieve it more efficiently — with a partial PoC extracted from a real codebase **and a multi-AI blind benchmark measuring token cost against three baselines (flat RAG, ToC RAG, GraphRAG).**
-> **Status: Concept + Partial PoC (B1→B2) + preliminary evidence that structured retrieval beats flat RAG. Honest caveat: the graph does not beat a plain hierarchy on absolute token_in for this linear codebase — see benchmark. B3/O(1) not yet benchmarked. This is a serious hypothesis — testing and rebuttal are welcome.**
+# Hierarchical Knowledge Graph Architecture for LLMs — V1.1
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20407674.svg)](https://doi.org/10.5281/zenodo.20407674)
+> A concept for organizing knowledge so LLMs can retrieve it more efficiently — with a partial PoC extracted from a real codebase **and a multi-AI blind benchmark measuring token cost.**
+> **Status: Concept + Partial PoC (B1→B2) + preliminary evidence of token savings. B3/O(1) not yet benchmarked. This is a serious hypothesis — testing and rebuttal are welcome.**
 
 **Author:** Pham Nguyen Son
 
@@ -23,13 +23,6 @@ Long context does not only increase memory cost. It also competes with the model
 
 This is the real reason answer quality degrades across long conversations — a layer of problem distinct from "lost in the middle," and one that flat context-stuffing has no escape from. This architecture attacks exactly this: instead of resending raw text each turn, history is **graphed into a compact signature**, aiming to keep token growth sublinear across long interactions rather than linearly accumulating. (Full mechanism in `docs/`, section 1.1.1.)
 
-## What's New in V1.2
-
-The three benchmark problem sets were re-run with **two stronger baselines** added, to test a fair critique: that graph-walk beat flat RAG only because building a graph pre-organizes knowledge, not because the edges carry value.
-
-1. **Method C — ToC RAG** (a plain hierarchical table of contents) and **Method D — GraphRAG** (Microsoft-style communities) added to all three problem files, both handed to the AIs ready-made.
-2. **Honest headline:** structured retrieval beats flat RAG robustly (now shown for three structures, not just the graph) — but the graph does **not** beat a plain Table of Contents on absolute token_in for this codebase. The graph's defensible win is multi-turn *growth rate*, not absolute savings. Recorded against the architecture's own framing. See [`benchmark/RESULTS.md`](benchmark/RESULTS.md).
-
 ## What's New in V1.0
 
 This version builds on concept v1.32 with three additions, keeping the original's honesty discipline (see `CHANGELOG.md`):
@@ -49,22 +42,20 @@ Open the PoC files in a browser (no install needed):
 - [`poc/pipeline_v11_graph_viewer.html`](poc/pipeline_v11_graph_viewer.html) — view three graphs (code dependency, data flow, concepts) extracted from a real STT codebase (Pipeline V11). The "Data flow" tab now uses the V1.0 edge architecture: each edge shows `seq · route`, click a node to see its data characteristics, and the sidebar has the `edge_index` table.
 - [`poc/poc_graph_query.html`](poc/poc_graph_query.html) — simulates the alarm-by-family mechanism → activating conditional edges → cross-check jump.
 
-## Empirical Evidence
+## Empirical Evidence (V1.0)
 
 Read [`benchmark/RESULTS.md`](benchmark/RESULTS.md) for details. Honest summary:
 
-**Supported signal (robust):**
-- **Structured retrieval loads far fewer input tokens than flat RAG** for structural-lookup questions — and this holds not just for the graph but for three different structures (graph-walk, a plain Table of Contents, and GraphRAG), across all rounds and every reliable AI, with no accuracy loss. Flat RAG is typically 2–6× heavier. This is the solid, repeatable result.
-- **Multi-turn growth stays sublinear:** in the 4-turn chain (Round 3), every compact-history method keeps token_in growth far below flat accumulation (which grows ~190–400% turn-over-turn). The graph signature grows the *slowest* of the three in a majority of reliable AIs — node-ids are shorter than ToC entries, so the graph compresses best as history accumulates. This is the graph's narrower, defensible niche.
+**Supported signal:**
+- Graph-walk loads **fewer input tokens than flat RAG** for structural-lookup questions. Repeated across 3 rounds, with multiple independent AIs (GPT, Grok, Gemini, DeepSeek, Qwen, MathGPT) pointing the same way.
+- **New in Round 3:** graph signature compression keeps token_in growth **sublinear across a 4-turn conversation chain**. The B/A ratio decreases consistently turn-over-turn for all 5 AIs tested (Turn 1 → Turn 4 ranging ~0.30→0.22 down to ~0.77→0.20 depending on AI). Across the 3 serious measurements (GPT5.5, Gemini, Grok — those with large enough token_in to have loaded the codebase), flat history grows +64–104% while graph signature grows only +27–62%. Preliminary evidence only — 1 codebase, 1 topic domain.
 
 **Result against expectation (recorded anyway):**
-- **The graph is not the absolute token winner.** A plain Table of Contents ties or *beats* the graph on absolute token_in (unanimous in Round 1, majority in Round 3, split in Round 2). On this small, largely linear codebase, much of the saving comes from **hierarchy**, not from edges. The "graph's edges drive the savings" framing is **not supported here** — recorded honestly. Whether edges pull ahead on a non-linear codebase is the next test.
-- The hypothesis "graph resists fabrication better than RAG" **was not supported.** When a model tends to fabricate, it fabricates under all methods. Honesty depends on the model's nature, not the data structure.
+- The hypothesis "graph resists fabrication better than RAG" **was not supported by the data**. When a model tends to fabricate, it fabricates under both methods. Honesty depends on the model's nature, not the data structure.
 
 **Still hypothesis:**
 - The magnitude of token savings is not pinned down — range too wide to state a single number.
 - token_out (output) is inconclusive across all rounds.
-- Whether edges beat a plain hierarchy on a dense, non-linear codebase is untested.
 - Behavior at >100 nodes, and **B3 / semantic jump / bounded traversal depth**, are not yet benchmarked.
 
 ## Read the Full Concept
@@ -103,14 +94,10 @@ The repo follows a discipline: **claim nothing beyond what has been demonstrated
 **Has evidence:**
 - A real codebase was extracted into a Hub/Leaf tree (B1), with edges carrying verifiable `file:line` metadata (B2).
 - Multi-family nodes, conditional edges, cross-check across two families — these are real phenomena.
-- **Structured retrieval beats flat RAG:** across all rounds and three different structures (graph, ToC, GraphRAG), token_in is far lower than flat RAG with no accuracy loss — numbers from a multi-AI blind test (preliminary evidence, not rigorous proof).
-- **Multi-turn growth stays sublinear** (Round 3), and the graph signature grows slowest of the three structures in a majority of reliable AIs — the graph's defensible niche.
-
-**Recorded against expectation:**
-- The graph does **not** beat a plain Table of Contents on absolute token_in (Round 1 unanimous, Round 3 majority). On this linear codebase, hierarchy explains most of the saving, not edges.
+- **Rounds 1–2:** graph-walk saves token_in vs. flat RAG — with numbers from a multi-AI blind test (preliminary evidence, not rigorous proof).
+- **Round 3:** graph signature compression keeps token_in growth sublinear across a 4-turn conversation chain — B/A ratio decreases consistently turn-over-turn across all 5 AIs tested. First direct measurement of the multi-turn accumulation claim. Still preliminary: 1 codebase, 1 topic domain.
 
 **Still hypothesis:**
-- Whether edges beat a plain hierarchy on a dense, non-linear codebase.
 - B3 / semantic jump / O(1) — the current PoC is still topology traversal, not teleportation.
 - Behavior at >100 nodes.
 - Advantage in token_out and in accuracy/anti-fabrication.
