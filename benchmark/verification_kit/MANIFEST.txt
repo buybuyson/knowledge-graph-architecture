@@ -1,0 +1,14 @@
+data/graph.json               100 node + 178 canh (bo node dung chung cho 3 view)
+data/view_flat.txt            Bieu dien phang
+data/view_toc.txt             Bieu dien ToC (bo canh)
+data/view_graph.txt           Bieu dien Graph (giu canh)
+data/nonlinearity_proof.json  Chung cu P8/P17 — codebase phi tuyen
+questions/QUESTIONS.md         4 cau hoi tich luy (KHONG kem dap an)
+scripts/extract_graph.py       Boc lai graph tu source Flask
+scripts/build_three_views.py   Dung 3 view tu graph
+scripts/build_answers.py       TU SINH dap an + hash (chong bia)
+scripts/score.py               Cham output LLM vs dap an may
+scripts/simulate_tokens.py     Mo phong duong token tich luy
+answer_key.GENERATED.json      Dap an may sinh (kem _integrity_sha256)
+EXPECTED_HASH.txt              Hash ky vong de doi chieu
+README.md                      Quy trinh kiem chung day du

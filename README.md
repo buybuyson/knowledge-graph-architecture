@@ -1,7 +1,7 @@
-# Hierarchical Knowledge Graph Architecture for LLMs — V1.2
+# Hierarchical Knowledge Graph Architecture for LLMs — V1.3
 
-> A concept for organizing knowledge so LLMs can retrieve it more efficiently — with a partial PoC extracted from a real codebase **and a multi-AI blind benchmark measuring token cost against three baselines (flat RAG, ToC RAG, GraphRAG).**
-> **Status: Concept + Partial PoC (B1→B2) + preliminary evidence that structured retrieval beats flat RAG. Honest caveat: the graph does not beat a plain hierarchy on absolute token_in for this linear codebase — see benchmark. B3/O(1) not yet benchmarked. This is a serious hypothesis — testing and rebuttal are welcome.**
+> A concept for organizing knowledge so LLMs can retrieve it more efficiently — with a partial PoC extracted from a real codebase **and a multi-AI blind benchmark measuring token cost against three baselines (flat RAG, ToC RAG, GraphRAG), now extended to a non-linear codebase where the graph’s edges pull ahead of a plain hierarchy in multi-turn (Round 5).**
+> **Status: Concept + Partial PoC (B1→B2) + preliminary evidence that (a) structured retrieval beats flat RAG, and (b) on a *non-linear* codebase, the graph's edges compress a multi-turn relationship-following conversation more cheaply than a plain hierarchy — confirmed in direction by 6 of 7 independent AIs (Round 5). Honest caveats: on a *linear* codebase the graph does NOT beat a plain ToC on absolute token_in (Round 4); the magnitude is not pin-down-able and one of seven AIs reversed; B3/O(1)-in-N is still not benchmarked. This is a serious hypothesis — testing and rebuttal are welcome.**
 
 **Author:** Pham Nguyen Son
 
@@ -22,6 +22,17 @@ In a multi-turn conversation, because the model **does not remember between call
 Long context does not only increase memory cost. It also competes with the model's effective reasoning bandwidth. As more tokens occupy the context window, attention becomes increasingly diluted across retrieved documents, prior conversation history, tool traces, intermediate reasoning, and output generation. The result is that larger context windows do not necessarily improve reasoning quality — in many cases, retrieval locality and signal density matter more than raw context size.
 
 This is the real reason answer quality degrades across long conversations — a layer of problem distinct from "lost in the middle," and one that flat context-stuffing has no escape from. This architecture attacks exactly this: instead of resending raw text each turn, history is **graphed into a compact signature**, aiming to keep token growth sublinear across long interactions rather than linearly accumulating. (Full mechanism in `docs/`, section 1.1.1.)
+
+## What's New in V1.3
+
+The open question every prior version ended on — *does the graph's edges beat a plain Table of Contents on a **non-linear** codebase?* — is now tested directly.
+
+1. **Round 5 benchmark** (`benchmark/round5_problem.md`): the same Flat/ToC/Graph comparison, but on **Flask core (100 function nodes, 178 edges, 4 dependency cycles)** instead of the linear Pipeline V11, and over a **4-turn cumulative conversation** whose questions force *following relationships* (condition → transitive reach into a cycle → convergence), not just locating a node.
+2. **Result, recorded against the prior framing:** where Round 4 found ToC ties-or-beats the graph on *linear* code, Round 5 finds the reverse on *non-linear* code — **6 of 7 independent AIs put the graph below ToC on total token_in**, with no accuracy loss. ToC still wins the single static lookup (Q1) in 6/7; the graph overtakes once the conversation accumulates relationship queries, usually by Turn 2. This moves the multi-turn edge-advantage claim from "hypothesis" to "preliminary evidence" — by exactly one notch.
+3. **Independent verification kit** (`benchmark/verification_kit/`): regenerates the ground-truth answers deterministically from the graph and checks them against a SHA-256 integrity hash, so no one has to trust the author's answer key. Includes a scorer that flags fabricated answers.
+4. **Honesty kept:** the one reversing AI (MathGPT) stays in the results table with an explanation, the large per-AI counting noise is stated, and no fixed savings ratio is claimed.
+
+See [`benchmark/RESULTS.md`](benchmark/RESULTS.md) → "Round 5".
 
 ## What's New in V1.2
 

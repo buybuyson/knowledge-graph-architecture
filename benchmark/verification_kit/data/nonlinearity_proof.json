@@ -1,0 +1,9 @@
+{
+ "nodes": 100,
+ "edges": 178,
+ "P8_cycles_SCC": 4,
+ "P8_is_DAG": false,
+ "P17_branch_out_ge3": 27,
+ "P17_fanin_ge3": 20,
+ "density": 1.78
+}

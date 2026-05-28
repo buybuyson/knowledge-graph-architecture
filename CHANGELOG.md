@@ -1,5 +1,31 @@
 # CHANGELOG
 
+## V1.3 — Round 5: the non-linear codebase test (answers the standing open question)
+
+Every prior version closed on the same unanswered question: *do the graph's edges beat a plain Table of Contents on a non-linear codebase with dense cross-dependencies?* Rounds 1–4 could not answer it because they ran on Pipeline V11, a largely linear STT pipeline with no dependency cycles. V1.3 runs the test on a non-linear codebase and records the result against the architecture's own framing.
+
+### Added
+
+- **`benchmark/round5_problem.md`** — self-contained 4-turn cumulative problem set on **Flask core (100 function-level nodes, 178 call edges, 4 dependency cycles)**. The same 100 nodes are presented three ways (Flat / ToC / Graph); the only ToC-vs-Graph difference is the edge list, isolating the value of edges. Questions force relationship-following: Q1 direct lookup (static), Q2 conditional filter, Q3 transitive reach into a cycle, Q4 convergence — each reusing the prior turn's answer.
+- **`benchmark/verification_kit/`** — an independent anti-fabrication kit. `build_answers.py` regenerates the ground-truth answers deterministically from the graph and emits a SHA-256 hash (`EXPECTED_HASH.txt`); `extract_graph.py` rebuilds the graph from the Flask source for anyone who distrusts the shipped `graph.json`; `score.py` grades an LLM's answers by precision/recall/F1 and flags fabrication. This closes the Round-4 limitation that the author hand-built the ToC and held the answer key privately.
+- **`benchmark/verification_kit/data/nonlinearity_proof.json`** — machine-generated proof the codebase is non-linear (not a DAG; 4 cycles; 27 fan-out, 20 fan-in points; density 1.78), so the test cannot be dismissed as "still linear."
+- **Round-5 results section in `benchmark/RESULTS.md`** — 7 independent AIs (Gemini, Claude Sonnet 4.6, ChatGPT, Grok, Qwen3.6, MathGPT, Claude 3.5 Sonnet).
+
+### Result (recorded against the prior framing)
+
+- **The open question is answered, directionally: on non-linear code, the graph's edges DO pull ahead of a plain ToC in multi-turn.** 6 of 7 AIs put Graph below ToC on total token_in — the reverse of Round 4's linear-codebase finding. ToC still wins the static single lookup (Q1) in 6/7; the graph overtakes once relationship queries accumulate, usually by Turn 2. No accuracy loss: all 7 AIs reported every answer matched across methods.
+- **Upgraded by exactly one notch:** the multi-turn edge-advantage claim moves from "hypothesis" to "preliminary evidence." NOT to proof — it is one non-linear codebase, the magnitude spread is large (Graph/ToC totals from ~0.34 to ~0.55 among the favouring AIs), and one AI reversed.
+
+### Honesty notes kept
+
+- **The one reversal (MathGPT) stays in the table with an explanation:** it counted literal edge-list length without modelling the re-citation cost ToC pays to resolve relationships. The majority reading counts that cost (correctly — it is the point of a relationship query); the reversal does not. A benchmark where every AI agreed would be more suspicious, exactly as the reversed DeepSeek run was treated in Round 1.
+- **Large per-AI counting noise is stated:** identical ToC text was counted 3.5× differently by different AIs, so several estimated rather than applied the regex convention. Only the 6/7 direction is robust; per-turn magnitudes are not.
+- **No fixed savings ratio is claimed.** Behaviour beyond 100 nodes, and the larger O(1)-in-N / semantic-jump claim, remain unproven — as before.
+- **Round 5 uses a different codebase than Rounds 1–4 (Flask vs Pipeline V11), by design.** Stated openly so it is not mistaken for a like-for-like continuation or a data swap.
+
+---
+
+
 ## V1.2 — Two stronger baselines added (ToC RAG + GraphRAG)
 
 This version re-runs the three existing problem sets with two additional retrieval methods, to test a fair critique: that graph-walk beat flat RAG only because building a graph pre-organizes knowledge ("compression effect"), not because the *edges* carry value. The two new baselines are stronger than flat RAG and are handed to each AI ready-made (no AI builds its own structure).

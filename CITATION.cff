@@ -5,8 +5,8 @@ type: software
 authors:
   - given-names: "Son"
     family-names: "Pham Nguyen"
-version: "1.2"
-date-released: "2026-05-26"
+version: "1.3"
+date-released: "2026-05-28"
 url: "(fill in GitHub repo URL after push)"
 repository-code: "(fill in GitHub repo URL)"
 keywords:
