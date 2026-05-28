@@ -8,7 +8,7 @@ This round tests a specific hypothesis: **does graph-based history compression k
 
 Rounds 1 and 2 measured single-shot retrieval. This round measures the same codebase (Pipeline V11) but across a conversation chain where each question builds on the previous answer. The critical measurement is **token_in at each turn**, not just the total.
 
-## 2. The two methods
+## 2. The four methods
 
 **Method A — Flat accumulation (baseline):**
 - Turn 1: load up to 5 relevant code chunks + Q1. Answer.
@@ -26,9 +26,23 @@ Rounds 1 and 2 measured single-shot retrieval. This round measures the same code
 
 **token_in at each turn = edge list + evidence lines opened + question + accumulated signatures (not full prior answers).**
 
-**The two methods run INDEPENDENTLY — no result leaks between them.**
+**Method C — ToC RAG with compact history:**
+- Turn 1: load the Section 5C ToC + open only the line spans relevant to Q1 + Q1. Answer. **Then compress the answer into a ToC signature** (see Section 3).
+- Turn 2: load ToC + relevant spans for Q2 + Q2 + **only the ToC signature(s) from prior turns** (not full prior answers). Answer. Append new signature.
+- Turn 3, 4: same pattern — carry forward only accumulated ToC signatures.
 
-## 3. Graph signature format (Method B only)
+**token_in(C) at each turn = ToC + line spans opened + question + accumulated ToC signatures (not full prior answers).**
+
+**Method D — GraphRAG with compact history:**
+- Turn 1: load the Section 5D community report + open only the drill-in lines relevant to Q1 + Q1. Answer. **Then compress the answer into a community signature** (see Section 3).
+- Turn 2: load community report + relevant drill-in lines for Q2 + Q2 + **only the community signature(s) from prior turns**. Answer. Append new signature.
+- Turn 3, 4: same pattern — carry forward only accumulated community signatures.
+
+**token_in(D) at each turn = community report + drill-in lines opened + question + accumulated community signatures (not full prior answers).**
+
+**All four methods run INDEPENDENTLY — no result leaks between them.** Note the key asymmetry being tested: Method A must resend full accumulated history each turn, while B/C/D each carry forward only a compact signature. This round measures whether compact-history methods keep token_in growth sublinear, and whether the graph signature (B) compresses better than the ToC signature (C) or community signature (D).
+
+## 3. Compact-history signature format (Methods B / C / D)
 
 After answering each turn in Method B, compress your answer into a graph signature:
 
@@ -45,6 +59,18 @@ Rules:
 - Node IDs must be from the graph in Section 6.
 - Finding must be ≤ 15 words.
 - The signature replaces the full answer in subsequent turns — do NOT carry forward full answer text.
+
+**Method C ToC signature** — same idea, but reference ToC entries instead of graph nodes:
+```
+TURN_N_TOC_SIG: [module.function entries visited] → [finding_in_max_15_words]
+```
+
+**Method D community signature** — same idea, but reference communities:
+```
+TURN_N_COMM_SIG: [community ids visited] → [finding_in_max_15_words]
+```
+
+For all three (B/C/D), the signature replaces the full answer in later turns. Keep each finding ≤ 15 words so the comparison of compression efficiency is fair across methods.
 
 ## 4. The four questions (conversation chain)
 
@@ -3335,35 +3361,147 @@ Trích bằng AST từ codebase Mục 4. Mỗi cạnh có `evidence` = file:line
 
 
 
+## 6C. Method C structure — Table-of-Contents (ToC) index (only Method C uses this)
+
+A hierarchical table of contents auto-generated from the Section-4 codebase: each module → its key functions → a one-line summary → file:line span. **There are NO cross-module relationships here** (no "module A imports module B"); the ToC only lists where things live, not how they connect. This is the deliberate difference from Method B's graph.
+
+```
+PIPELINE V11 — TABLE OF CONTENTS
+================================
+main.py  [main.py:1-470]
+  - bootstrap_env()          sets HF_HOME/HF_HUB_CACHE etc. to local models dir
+  - GUI (tkinter)            transcription pipeline front-end, wires modules together
+  - is_audio_file()          file-type check helper
+  - export_chunk()           triggers export of a transcript chunk
+
+download_models.py  [download_models.py:1-120]
+  - main()                   reads WHISPER_MODEL/WHISPER_DEVICE/WHISPER_COMPUTE_TYPE/HF_TOKEN, downloads model snapshots
+
+pipeline/audio.py  [audio.py:1-70]
+  - load_audio()             loads/normalizes raw audio for downstream steps
+
+pipeline/denoise.py  [denoise.py:1-180]
+  - denoise()                reads DENOISE_ENABLED/DENOISE_LEVEL/HW_DENOISE_ENGINE; noise reduction
+  - silence handling         reads SILENCE_THRESHOLD_DB/SILENCE_MIN_SEC
+
+pipeline/diarize.py  [diarize.py:1-130]
+  - diarize()                speaker diarization via pyannote; reads HF_TOKEN
+  - VAD params               reads VAD_THRESHOLD/VAD_MIN_SILENCE_MS/VAD_SPEECH_PAD_MS
+
+pipeline/export.py  [export.py:1-240]
+  - export_*()               writes transcript to output formats; reads OUTPUT_DIR
+
+pipeline/hardware_detect.py  [hardware_detect.py:1-250]
+  - detect_device()          reads USERNAME; resolves CPU/GPU/compute type
+
+pipeline/model_locator.py  [model_locator.py:1-200]
+  - resolve_whisper_model()  resolves Whisper model on disk; reads WHISPER_MODEL/WHISPER_DEVICE/WHISPER_COMPUTE_TYPE/WHISPER_LANGUAGE
+
+pipeline/postprocess.py  [postprocess.py:1-270]
+  - postprocess()            optional LLM cleanup; reads LLM_ENABLED/LLM_CONF_THRESHOLD/OLLAMA_MODEL/LLM_DOMAIN/LLM_GLOSSARY
+
+pipeline/transcribe.py  [transcribe.py:1-180]
+  - transcribe()             faster-whisper inference; reads CONDITION_ON_PREVIOUS_TEXT/COMPRESSION_RATIO_THRESHOLD/LOG_PROB_THRESHOLD/NO_SPEECH_THRESHOLD/REPETITION_PENALTY
+
+pipeline/utils.py  [utils.py:1-65]
+  - helpers                  shared utilities imported by many modules
+```
+
+**How Method C answers:** read the ToC above, pick the module(s)/function(s) whose one-line summary matches the question, then open ONLY those line spans in Section 4 to confirm. Do NOT load whole files, and do NOT use the Section-5/6 graph. token_in(C) = tokens of the ToC + the line spans you opened + the question + the framing prompt.
+
+---
+
+## 6D. Method D structure — pre-built GraphRAG communities (only Method D uses this)
+
+GraphRAG (Microsoft-style): the codebase has been clustered into communities, and each community has a pre-written summary. **These communities and summaries are provided ready-made — do NOT build your own; just read, pick the relevant community, drill in, and count.** (This mirrors how Method B is given the graph ready-made in Section 5/6 — neither method builds its own structure during the test.)
+
+```
+GRAPHRAG COMMUNITY REPORT — PIPELINE V11
+========================================
+
+COMMUNITY 0 — "Entry & orchestration"
+  members: main, utils
+  summary: Application entry point. main.py bootstraps HuggingFace cache env vars
+           to a local models dir, builds the tkinter GUI, and orchestrates the
+           pipeline. utils provides shared helpers imported across the pipeline.
+  drill-in nodes: mod:main, mod:utils
+
+COMMUNITY 1 — "Audio front-end"
+  members: audio, denoise, diarize
+  summary: Audio ingestion and conditioning. audio loads/normalizes; denoise applies
+           noise reduction (DENOISE_ENABLED/DENOISE_LEVEL/HW_DENOISE_ENGINE) and
+           silence handling; diarize runs speaker diarization via pyannote and
+           reads HF_TOKEN. VAD params live here.
+  drill-in nodes: mod:audio, mod:denoise, mod:diarize, env:HF_TOKEN, env:HW_DENOISE_ENGINE
+
+COMMUNITY 2 — "Model resolution & hardware"
+  members: download_models, model_locator, hardware_detect, whisper model
+  summary: Decides what model to run and on what hardware. download_models reads
+           WHISPER_MODEL/WHISPER_DEVICE/WHISPER_COMPUTE_TYPE/HF_TOKEN to fetch
+           snapshots. model_locator resolves the Whisper model on disk. 
+           hardware_detect reads USERNAME and resolves device/compute type.
+  drill-in nodes: mod:download_models, mod:model_locator, mod:hardware_detect, model:whisper
+
+COMMUNITY 3 — "Transcription core"
+  members: transcribe
+  summary: faster-whisper inference. Reads decoding-control vars that bound
+           hallucination: CONDITION_ON_PREVIOUS_TEXT, COMPRESSION_RATIO_THRESHOLD,
+           LOG_PROB_THRESHOLD, NO_SPEECH_THRESHOLD, REPETITION_PENALTY.
+  drill-in nodes: mod:transcribe, env:CONDITION_ON_PREVIOUS_TEXT, env:COMPRESSION_RATIO_THRESHOLD, env:LOG_PROB_THRESHOLD, env:NO_SPEECH_THRESHOLD, env:REPETITION_PENALTY
+
+COMMUNITY 4 — "Post-processing & output"
+  members: postprocess, export
+  summary: Optional LLM cleanup and output. postprocess calls a local Ollama LLM
+           (LLM_ENABLED/LLM_CONF_THRESHOLD/OLLAMA_MODEL/LLM_DOMAIN/LLM_GLOSSARY).
+           export writes the transcript to disk (OUTPUT_DIR).
+  drill-in nodes: mod:postprocess, mod:export, env:OLLAMA_MODEL, env:LLM_CONF_THRESHOLD
+
+CROSS-COMMUNITY NOTE: utils (Community 0) is imported by modules across
+Communities 1–4. download_models and model_locator (Community 2) both touch
+Whisper-model config vars.
+```
+
+**How Method D answers:** read the community report above, pick the community whose summary matches the question, then open ONLY the drill-in nodes' code lines (via their file:line from Section 4) to confirm. token_in(D) = tokens of the community report + the drill-in lines you opened + the question + the framing prompt.
+
+
 ## 7. Result format (return ONLY this table)
 
 Token-counting convention (same as Rounds 1 and 2):
 - Split text into units: each cluster matching `[A-Za-z0-9_]+`, or a single non-whitespace/non-alphanumeric character.
 - Each unit counts as `1 + floor((length-1)/6)` tokens.
-- **token_in at each turn** = all tokens loaded for that turn (accumulated history for A; accumulated signatures for B).
+- **token_in at each turn** = all tokens loaded for that turn (accumulated history for A; accumulated signatures for B/C/D).
 - token_out = tokens of the answer generated at that turn.
 
 ```
 AI: <your AI name>
 
-Per-turn breakdown:
-Turn | A.token_in | A.token_out | B.token_in | B.token_out
-  1  |            |             |            |
-  2  |            |             |            |
-  3  |            |             |            |
-  4  |            |             |            |
-TOTAL|            |             |            |
+Per-turn token_in (the primary metric):
+Turn | A.token_in | B.token_in | C.token_in | D.token_in
+  1  |            |            |            |
+  2  |            |            |            |
+  3  |            |            |            |
+  4  |            |            |            |
+TOTAL|            |            |            |
 
-Growth ratio (B.token_in / A.token_in):
-  Turn 1: ___   Turn 2: ___   Turn 3: ___   Turn 4: ___
+Growth ratio vs flat baseline A (method.token_in / A.token_in), per turn:
+        Turn 1   Turn 2   Turn 3   Turn 4
+  B/A:  ____     ____     ____     ____
+  C/A:  ____     ____     ____     ____
+  D/A:  ____     ____     ____     ____
 
-Does B.token_in grow slower than A.token_in across turns? (yes / no / inconclusive): ___
+Turn1→Turn4 growth of each method's own token_in (percent):
+  A: ___%   B: ___%   C: ___%   D: ___%
 
-Answer quality check — did both methods reach the same answer for each turn?
+Does each compact-history method (B, C, D) grow slower than flat A? (yes/no/inconclusive):
+  B: ___   C: ___   D: ___
+
+Answer quality check — did all four methods reach the same answer each turn?
   Q1 match: yes/no   Q2 match: yes/no   Q3 match: yes/no   Q4 match: yes/no
 ```
 
-After the table, write exactly 1 line: note any turn where the two methods gave materially different answers, and why. If all matched, write "All matched."
+After the table, write exactly 2 lines:
+1. Note any turn where methods gave materially different answers, and why. If all matched, write "All matched."
+2. Among the three compact-history methods (B/C/D), which kept token_in growth lowest? This tells us whether the graph signature compresses better than ToC or community signatures.
 
 ---
 

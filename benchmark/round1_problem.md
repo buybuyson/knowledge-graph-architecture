@@ -4,15 +4,19 @@ You are an independent measurer. Follow the problem exactly and **return only th
 
 ## 1. Goal
 
-There is a Python codebase (embedded in Section 4) and a dependency graph extracted from that same codebase (Section 5). For each question in Section 3, answer using TWO separate methods, measuring tokens loaded in (token_in) and tokens generated out (token_out) for each method. The goal is to compare token cost between the two methods. No method is favored; measure honestly.
+There is a Python codebase (embedded in Section 4) and several retrieval structures extracted from that same codebase: a dependency graph (Section 5), a Table of Contents (Section 5C), and pre-built GraphRAG communities (Section 5D). For each question in Section 3, answer using FOUR separate methods, measuring tokens loaded in (token_in) and tokens generated out (token_out) for each method. The goal is to compare token cost across the four methods. No method is favored; measure honestly.
 
-## 2. The two methods
+## 2. The four methods
 
-**Method A — Flat RAG (baseline).** You may NOT use the graph in Section 5. Split the code in Section 4 into chunks the usual RAG way: each function or each ~40 lines is a chunk. For a question, pick the most relevant chunks (by keyword/semantics, up to 5 chunks) as context, then answer. token_in(A) = tokens of the chunks you loaded + the question + the framing prompt.
+**Method A — Flat RAG (baseline).** You may NOT use any structure in Sections 5/5C/5D. Split the code in Section 4 into chunks the usual RAG way: each function or each ~40 lines is a chunk. For a question, pick the most relevant chunks (by keyword/semantics, up to 5 chunks) as context, then answer. token_in(A) = tokens of the chunks you loaded + the question + the framing prompt.
 
 **Method B — Graph-walk.** You may use the graph in Section 5. Load the graph's edge list (each edge a line: source, target, type, evidence). From the question, filter the relevant edges, then open ONLY the code lines at the `evidence` (file:line) of those edges to confirm. Do NOT load whole files. token_in(B) = tokens of the edge list + the evidence lines you opened + the question + the framing prompt.
 
-The two methods must produce INDEPENDENT answers. Do not let one method's result leak into the other.
+**Method C — ToC RAG (hierarchical baseline).** You may use ONLY the Table of Contents in Section 5C (NOT the graph in Section 5, NOT the communities in Section 5D). Read the ToC, pick the module/function whose one-line summary matches the question, then open ONLY those line spans in Section 4 to confirm. The ToC lists *where things live* but NOT *how modules relate* — that is the deliberate difference from Method B. token_in(C) = tokens of the ToC + the line spans you opened + the question + the framing prompt.
+
+**Method D — GraphRAG (pre-built communities).** You may use ONLY the community report in Section 5D. Pick the community whose summary matches the question, then open ONLY the drill-in nodes' code lines to confirm. The communities and summaries are GIVEN ready-made — do NOT build your own. token_in(D) = tokens of the community report + the drill-in lines you opened + the question + the framing prompt.
+
+All four methods must produce INDEPENDENT answers. Do not let one method's result leak into another. Each method's token_in counts ONLY what that method loaded.
 
 ## 3. The five questions
 
@@ -3292,6 +3296,109 @@ Extracted via AST from the Section 4 codebase. Each edge has `evidence` = file:l
 }
 ```
 
+## 5C. Method C structure — Table-of-Contents (ToC) index (only Method C uses this)
+
+A hierarchical table of contents auto-generated from the Section-4 codebase: each module → its key functions → a one-line summary → file:line span. **There are NO cross-module relationships here** (no "module A imports module B"); the ToC only lists where things live, not how they connect. This is the deliberate difference from Method B's graph.
+
+```
+PIPELINE V11 — TABLE OF CONTENTS
+================================
+main.py  [main.py:1-470]
+  - bootstrap_env()          sets HF_HOME/HF_HUB_CACHE etc. to local models dir
+  - GUI (tkinter)            transcription pipeline front-end, wires modules together
+  - is_audio_file()          file-type check helper
+  - export_chunk()           triggers export of a transcript chunk
+
+download_models.py  [download_models.py:1-120]
+  - main()                   reads WHISPER_MODEL/WHISPER_DEVICE/WHISPER_COMPUTE_TYPE/HF_TOKEN, downloads model snapshots
+
+pipeline/audio.py  [audio.py:1-70]
+  - load_audio()             loads/normalizes raw audio for downstream steps
+
+pipeline/denoise.py  [denoise.py:1-180]
+  - denoise()                reads DENOISE_ENABLED/DENOISE_LEVEL/HW_DENOISE_ENGINE; noise reduction
+  - silence handling         reads SILENCE_THRESHOLD_DB/SILENCE_MIN_SEC
+
+pipeline/diarize.py  [diarize.py:1-130]
+  - diarize()                speaker diarization via pyannote; reads HF_TOKEN
+  - VAD params               reads VAD_THRESHOLD/VAD_MIN_SILENCE_MS/VAD_SPEECH_PAD_MS
+
+pipeline/export.py  [export.py:1-240]
+  - export_*()               writes transcript to output formats; reads OUTPUT_DIR
+
+pipeline/hardware_detect.py  [hardware_detect.py:1-250]
+  - detect_device()          reads USERNAME; resolves CPU/GPU/compute type
+
+pipeline/model_locator.py  [model_locator.py:1-200]
+  - resolve_whisper_model()  resolves Whisper model on disk; reads WHISPER_MODEL/WHISPER_DEVICE/WHISPER_COMPUTE_TYPE/WHISPER_LANGUAGE
+
+pipeline/postprocess.py  [postprocess.py:1-270]
+  - postprocess()            optional LLM cleanup; reads LLM_ENABLED/LLM_CONF_THRESHOLD/OLLAMA_MODEL/LLM_DOMAIN/LLM_GLOSSARY
+
+pipeline/transcribe.py  [transcribe.py:1-180]
+  - transcribe()             faster-whisper inference; reads CONDITION_ON_PREVIOUS_TEXT/COMPRESSION_RATIO_THRESHOLD/LOG_PROB_THRESHOLD/NO_SPEECH_THRESHOLD/REPETITION_PENALTY
+
+pipeline/utils.py  [utils.py:1-65]
+  - helpers                  shared utilities imported by many modules
+```
+
+**How Method C answers:** read the ToC above, pick the module(s)/function(s) whose one-line summary matches the question, then open ONLY those line spans in Section 4 to confirm. Do NOT load whole files, and do NOT use the Section-5/6 graph. token_in(C) = tokens of the ToC + the line spans you opened + the question + the framing prompt.
+
+---
+
+## 5D. Method D structure — pre-built GraphRAG communities (only Method D uses this)
+
+GraphRAG (Microsoft-style): the codebase has been clustered into communities, and each community has a pre-written summary. **These communities and summaries are provided ready-made — do NOT build your own; just read, pick the relevant community, drill in, and count.** (This mirrors how Method B is given the graph ready-made in Section 5/6 — neither method builds its own structure during the test.)
+
+```
+GRAPHRAG COMMUNITY REPORT — PIPELINE V11
+========================================
+
+COMMUNITY 0 — "Entry & orchestration"
+  members: main, utils
+  summary: Application entry point. main.py bootstraps HuggingFace cache env vars
+           to a local models dir, builds the tkinter GUI, and orchestrates the
+           pipeline. utils provides shared helpers imported across the pipeline.
+  drill-in nodes: mod:main, mod:utils
+
+COMMUNITY 1 — "Audio front-end"
+  members: audio, denoise, diarize
+  summary: Audio ingestion and conditioning. audio loads/normalizes; denoise applies
+           noise reduction (DENOISE_ENABLED/DENOISE_LEVEL/HW_DENOISE_ENGINE) and
+           silence handling; diarize runs speaker diarization via pyannote and
+           reads HF_TOKEN. VAD params live here.
+  drill-in nodes: mod:audio, mod:denoise, mod:diarize, env:HF_TOKEN, env:HW_DENOISE_ENGINE
+
+COMMUNITY 2 — "Model resolution & hardware"
+  members: download_models, model_locator, hardware_detect, whisper model
+  summary: Decides what model to run and on what hardware. download_models reads
+           WHISPER_MODEL/WHISPER_DEVICE/WHISPER_COMPUTE_TYPE/HF_TOKEN to fetch
+           snapshots. model_locator resolves the Whisper model on disk. 
+           hardware_detect reads USERNAME and resolves device/compute type.
+  drill-in nodes: mod:download_models, mod:model_locator, mod:hardware_detect, model:whisper
+
+COMMUNITY 3 — "Transcription core"
+  members: transcribe
+  summary: faster-whisper inference. Reads decoding-control vars that bound
+           hallucination: CONDITION_ON_PREVIOUS_TEXT, COMPRESSION_RATIO_THRESHOLD,
+           LOG_PROB_THRESHOLD, NO_SPEECH_THRESHOLD, REPETITION_PENALTY.
+  drill-in nodes: mod:transcribe, env:CONDITION_ON_PREVIOUS_TEXT, env:COMPRESSION_RATIO_THRESHOLD, env:LOG_PROB_THRESHOLD, env:NO_SPEECH_THRESHOLD, env:REPETITION_PENALTY
+
+COMMUNITY 4 — "Post-processing & output"
+  members: postprocess, export
+  summary: Optional LLM cleanup and output. postprocess calls a local Ollama LLM
+           (LLM_ENABLED/LLM_CONF_THRESHOLD/OLLAMA_MODEL/LLM_DOMAIN/LLM_GLOSSARY).
+           export writes the transcript to disk (OUTPUT_DIR).
+  drill-in nodes: mod:postprocess, mod:export, env:OLLAMA_MODEL, env:LLM_CONF_THRESHOLD
+
+CROSS-COMMUNITY NOTE: utils (Community 0) is imported by modules across
+Communities 1–4. download_models and model_locator (Community 2) both touch
+Whisper-model config vars.
+```
+
+**How Method D answers:** read the community report above, pick the community whose summary matches the question, then open ONLY the drill-in nodes' code lines (via their file:line from Section 4) to confirm. token_in(D) = tokens of the community report + the drill-in lines you opened + the question + the framing prompt.
+
+
 ## 6. Result format (return ONLY this part)
 
 Token-counting convention (use exactly this convention, do not use your own tokenizer, so everyone can compare):
@@ -3301,17 +3408,19 @@ Token-counting convention (use exactly this convention, do not use your own toke
 - token_out = tokens of the answer you generated.
 
 
-Fill in the table below (integers). The `match` column = `yes` if both methods' answers agree, `no` if they differ:
+Fill in the table below (integers). The `match` column = `yes` if ALL FOUR methods' answers agree, otherwise list which method(s) differ (e.g. `D differs`):
 
 ```
 AI: <your AI name>
-Q   | A.token_in | A.token_out | B.token_in | B.token_out | match
- 1  |            |             |            |             |
- 2  |            |             |            |             |
- 3  |            |             |            |             |
- 4  |            |             |            |             |
- 5  |            |             |            |             |
-TOTAL|           |             |            |             |
+Q   | A.token_in | A.token_out | B.token_in | B.token_out | C.token_in | C.token_out | D.token_in | D.token_out | match
+ 1  |            |             |            |             |            |             |            |             |
+ 2  |            |             |            |             |            |             |            |             |
+ 3  |            |             |            |             |            |             |            |             |
+ 4  |            |             |            |             |            |             |            |             |
+ 5  |            |             |            |             |            |             |            |             |
+TOTAL|           |             |            |             |            |             |            |             |
 ```
 
-After the table, write exactly 1 comment line: which method used fewer token_in, fewer token_out, and whether any question got DIFFERENT answers from the two methods.
+After the table, write exactly 2 comment lines:
+1. Rank the four methods by total token_in (lowest first), and note token_out ranking if clear.
+2. Whether any question got a DIFFERENT answer under any method (and which) — this is the accuracy check.

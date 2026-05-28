@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## V1.2 — Two stronger baselines added (ToC RAG + GraphRAG)
+
+This version re-runs the three existing problem sets with two additional retrieval methods, to test a fair critique: that graph-walk beat flat RAG only because building a graph pre-organizes knowledge ("compression effect"), not because the *edges* carry value. The two new baselines are stronger than flat RAG and are handed to each AI ready-made (no AI builds its own structure).
+
+### Added
+
+- **Method C — ToC RAG** (a hierarchical table of contents: module → function → one-line summary → file:line; lists *where things live* but not *how modules relate*) and **Method D — GraphRAG** (Microsoft-style pre-built community report) in all three problem files. Each problem set now compares four methods (A flat, B graph, C ToC, D GraphRAG).
+- **Round-4 results section in `benchmark/RESULTS.md`** — re-runs across multiple AIs with explicit reliability filtering.
+
+### Honest headline (recorded against the architecture's framing)
+
+- **Structured retrieval (B/C/D) beats flat RAG (A) robustly** — across all three rounds, every reliable AI, no accuracy loss. This is the solid, repeatable result, now *strengthened* (it holds for three different structures, not just the graph).
+- **The graph (B) is NOT the absolute token winner.** A plain Table of Contents (C) ties or beats it on absolute token_in: unanimous in Round 1, majority in Round 3, split in Round 2. On this small, largely linear codebase, much of the gain comes from **hierarchy**, not from edges. The "compression effect" critique has real empirical support here, and is recorded as such.
+- **Where the graph does win: multi-turn growth rate** (Round 3) — node-id signatures are shorter than ToC entries and compress better as history accumulates. This is the narrower defensible claim, not a blanket token win.
+- **GraphRAG (D) sits mid-pack** — beats flat, usually loses to ToC, often loses to the graph.
+- **Fabrication unchanged by structure**, again (Round-2 traps): each AI gave the same honest-or-fabricated verdict across all four methods.
+
+### Reliability filtering (stated openly)
+
+- Runs were excluded where an AI loaded the whole structure instead of filtering/drilling (tell: B or C token_in larger than flat A, or a fixed constant across questions): DeepSeek R2, Qwen R1, Gemini R1, and a broken "Claude (simulated)" R1 run. The failure does not track vendor — a Google model and a US-labelled run failed the same way two Chinese models did. The cause is whether the AI actually filters, not who made it.
+
+### Still hypothesis (unchanged)
+
+- Whether the graph's edges pull ahead of a plain hierarchy on a **non-linear codebase** (dense cross-dependencies) is not answered here — it is the obvious next test.
+- B3 / semantic jump / O(1)-in-N remains unproven, as before.
+
+---
+
 ## V1.1 — Round 3 added (multi-turn token accumulation)
 
 This version adds the third benchmark round, which directly tests the core mechanism claim behind the architecture: that flat history accumulation inflates token_in across a multi-turn conversation, while a compact graph signature keeps growth sublinear.
